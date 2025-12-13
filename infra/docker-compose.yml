@@ -1,11 +1,12 @@
 services:
   gateway:
+    image: ghcr.io/phillredkin/gateway:latest
     build: ../gateway
     ports:
       - "8080:80"
     environment:
       TEXT_SERVICE_URL: "http://text-service:8000/analyze"
-      REDIS_HOST: "redis"
+      REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_TTL: 300
       RATE_LIMIT_PER_MIN: 60
@@ -15,6 +16,7 @@ services:
     networks: [appnet]
 
   text-service:
+    image: ghcr.io/phillredkin/text-service:latest
     build: ../services/text-service
     ports:
       - "8001:8000"
@@ -22,8 +24,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     networks: [appnet]
 
 networks:

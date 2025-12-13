@@ -1,0 +1,20 @@
+services:
+  gateway:
+    build: ../gateway
+    ports:
+      - "8080:80"
+    environment:
+      TEXT_SERVICE_URL: "http://text-service:8000/analyze"
+    depends_on:
+      - text-service
+    networks: [appnet]
+
+  text-service:
+    build: ../services/text-service
+    ports:
+      - "8001:8000"
+    networks: [appnet]
+
+networks:
+  appnet:
+    driver: bridge

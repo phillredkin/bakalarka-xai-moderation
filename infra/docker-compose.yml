@@ -1,11 +1,15 @@
+version: "3.9"
+
 services:
   gateway:
-    image: ghcr.io/phillredkin/gateway:latest
-    build: ../gateway
+    image: ghcr.io/phillredkin/bakalarka-xai-moderation/gateway:${TAG:-latest}
+    build:
+      context: ../gateway
     ports:
       - "8080:80"
     environment:
-      TEXT_SERVICE_URL: "http://text-service:8000/analyze"
+      APP_ENV: ${APP_ENV:-test}
+      TEXT_SERVICE_URL: http://text-service:8000/analyze
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_TTL: 300
@@ -13,18 +17,24 @@ services:
     depends_on:
       - text-service
       - redis
-    networks: [appnet]
+    networks:
+      - appnet
 
   text-service:
-    image: ghcr.io/phillredkin/text-service:latest
-    build: ../services/text-service
+    image: ghcr.io/phillredkin/bakalarka-xai-moderation/text-service:${TAG:-latest}
+    build:
+      context: ../services/text-service
     ports:
       - "8001:8000"
-    networks: [appnet]
+    networks:
+      - appnet
 
   redis:
     image: redis:7-alpine
-    networks: [appnet]
+    ports:
+      - "6379:6379"
+    networks:
+      - appnet
 
 networks:
   appnet:

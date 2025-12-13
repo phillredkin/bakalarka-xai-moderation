@@ -27,11 +27,11 @@ jobs:
         with:
           context: ./gateway
           push: true
-          tags: ghcr.io/${{ github.actor }}/gateway:test
+          tags: ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}/gateway:test
 
       - name: Build & push text-service
         uses: docker/build-push-action@v5
         with:
           context: ./services/text-service
           push: true
-          tags: ghcr.io/${{ github.actor }}/text-service:test
+          tags: ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}/text-service:test

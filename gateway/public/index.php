@@ -4,6 +4,12 @@ header('Content-Type: application/json');
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+if ($path === '/' || $path === '') {
+    header('Content-Type: text/html, charset=utf-8');
+    readfile(__DIR__ . 'ui.html');
+    exit;
+}
+
 if ($path === '/health') {
     echo json_encode(["status" => "ok", "service" => "gateway"]);
     exit;

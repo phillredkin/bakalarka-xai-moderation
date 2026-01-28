@@ -5,8 +5,8 @@ header('Content-Type: application/json');
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 if ($path === '/' || $path === '') {
-    header('Content-Type: text/html, charset=utf-8');
-    readfile(__DIR__ . 'ui.html');
+    header('Content-Type: text/html; charset=utf-8');
+    readfile(__DIR__ . '/ui.html');
     exit;
 }
 

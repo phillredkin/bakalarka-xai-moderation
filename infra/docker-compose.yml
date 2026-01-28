@@ -28,6 +28,8 @@ services:
       - "8001:8000"
     networks:
       - appnet
+    environment:
+      HF_TOKEN: ${HF_TOKEN}
 
   redis:
     image: redis:7-alpine

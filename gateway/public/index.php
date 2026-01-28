@@ -4,26 +4,17 @@ header('Content-Type: application/json');
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-/**
- * HEALTH
- */
 if ($path === '/health') {
     echo json_encode(["status" => "ok", "service" => "gateway"]);
     exit;
 }
 
-/**
- * ONLY API
- */
 if ($path !== '/api/v1/text/analyze' || $_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(404);
     echo json_encode(["error" => "Not Found"]);
     exit;
 }
 
-/**
- * READ BODY ONCE
- */
 $body = file_get_contents('php://input');
 if (!$body) {
     http_response_code(400);
@@ -31,18 +22,12 @@ if (!$body) {
     exit;
 }
 
-/**
- * CONNECT REDIS
- */
 $redis = new Redis();
 $redis->connect(
     getenv('REDIS_HOST') ?: 'redis',
     (int)(getenv('REDIS_PORT') ?: 6379)
 );
 
-/**
- * RATE LIMIT
- */
 $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 $rateKey = 'rate:' . $clientIp;
 $limit = (int)(getenv('RATE_LIMIT_PER_MIN') ?: 60);
@@ -58,9 +43,6 @@ if ($requests > $limit) {
     exit;
 }
 
-/**
- * CACHE
- */
 $cacheKey = 'cache:text:' . sha1($body);
 $ttl = (int)(getenv('REDIS_TTL') ?: 300);
 
@@ -69,9 +51,6 @@ if ($redis->exists($cacheKey)) {
     exit;
 }
 
-/**
- * CALL TEXT-SERVICE
- */
 $url = getenv('TEXT_SERVICE_URL') ?: 'http://text-service:8000/analyze';
 
 $ch = curl_init($url);
@@ -93,13 +72,7 @@ if ($response === false || $code !== 200) {
     exit;
 }
 
-/**
- * SAVE CACHE
- */
 $redis->setex($cacheKey, $ttl, $response);
 
-/**
- * RETURN RESPONSE
- */
 echo $response;
 exit;

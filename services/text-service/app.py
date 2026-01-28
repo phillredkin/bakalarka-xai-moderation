@@ -48,7 +48,27 @@ def analyze(req: AnalyzeRequest):
 
     hf_result = r.json()
 
-    top = hf_result[0]
+    if isinstance(hf_result, dict) and "error" in hf_result:
+        raise HTTPException(
+            status_code=502,
+            detail=f"HuggingFace error: {hf_result['error']}"
+        )
+
+    if isinstance(hf_result, list):
+        if len(hf_result) == 0:
+            raise HTTPException(502, detail="Empty HF response")
+
+        first = hf_result[0]
+
+        if isinstance(first, list):
+            top = first[0]
+        elif isinstance(first, dict):
+            top = first
+        else:
+            raise HTTPException(502, detail=f"Unknown HF format: {hf_result}")
+    else:
+        raise HTTPException(502, detail=f"Unexpected HF response: {hf_result}")
+
     label = top.get("label", "unknown")
     score = float(top.get("score", 0.0))
 
@@ -57,7 +77,6 @@ def analyze(req: AnalyzeRequest):
         "status": "ok",
         "model": HF_MODEL,
         "data": {
-            "verdict": verdict,
             "label": label,
             "confidence": round(score, 4),
         },

@@ -3,221 +3,189 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Moderation Gateway</title>
-
+  <title>XAI Moderation</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-zinc-950 text-zinc-100">
-  <div class="mx-auto max-w-4xl px-4 py-10">
 
-    <div class="mb-8">
-      <h1 class="text-2xl font-semibold tracking-tight">XAI Moderation</h1>
-      <p class="mt-1 text-sm text-zinc-400">Minimal UI for text/image/audio/video analysis</p>
-    </div>
+<body class="min-h-screen bg-zinc-100 text-zinc-900">
+<div class="mx-auto max-w-4xl px-4 py-12">
 
-    <div class="mb-6 flex flex-wrap gap-2">
-      <button data-tab="text"
-        class="tab-btn rounded-xl px-4 py-2 text-sm font-medium border border-zinc-800 bg-zinc-900">
-        Text
-      </button>
-      <button data-tab="image"
-        class="tab-btn rounded-xl px-4 py-2 text-sm font-medium border border-zinc-800 text-zinc-300 hover:bg-zinc-900">
-        Image
-      </button>
-      <button data-tab="audio"
-        class="tab-btn rounded-xl px-4 py-2 text-sm font-medium border border-zinc-800 text-zinc-300 hover:bg-zinc-900">
-        Audio
-      </button>
-      <button data-tab="video"
-        class="tab-btn rounded-xl px-4 py-2 text-sm font-medium border border-zinc-800 text-zinc-300 hover:bg-zinc-900">
-        Video
-      </button>
-    </div>
-
-    <div class="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 shadow-sm">
-
-      <section id="panel-text" class="tab-panel">
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <h2 class="text-base font-semibold">Text analysis</h2>
-          <span class="text-xs text-zinc-400">POST /api/v1/text/analyze</span>
-        </div>
-
-        <label class="block text-sm text-zinc-300 mb-2">Paste text</label>
-        <textarea id="textInput"
-          class="w-full min-h-40 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-700"
-          placeholder="Type something... (try including the word 'bad')"></textarea>
-
-        <div class="mt-4 flex items-center gap-3">
-          <button id="submitText"
-            class="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed">
-            Analyze
-          </button>
-
-          <button id="clearText"
-            class="rounded-xl border border-zinc-800 px-4 py-2 text-sm font-medium text-zinc-200 hover:bg-zinc-900">
-            Clear
-          </button>
-
-          <span id="statusText" class="text-sm text-zinc-400"></span>
-        </div>
-
-        <div class="mt-5">
-          <div class="mb-2 flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-zinc-200">Result</h3>
-            <button id="copyResult"
-              class="rounded-lg border border-zinc-800 px-3 py-1 text-xs text-zinc-200 hover:bg-zinc-900">
-              Copy JSON
-            </button>
-          </div>
-          <pre id="resultBox"
-            class="overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-200 min-h-24 whitespace-pre-wrap break-words">{
-  "info": "Waiting for request..."
-}</pre>
-        </div>
-      </section>
-
-      <section id="panel-image" class="tab-panel hidden">
-        <h2 class="text-base font-semibold mb-2">Image analysis</h2>
-        <p class="text-sm text-zinc-400">
-          Placeholder UI. Подключим позже, когда появится image-service.
-        </p>
-        <div class="mt-4 rounded-xl border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
-          Upload input will be here.
-        </div>
-      </section>
-
-      <section id="panel-audio" class="tab-panel hidden">
-        <h2 class="text-base font-semibold mb-2">Audio analysis</h2>
-        <p class="text-sm text-zinc-400">
-          Placeholder UI. Подключим позже, когда появится speech-service.
-        </p>
-        <div class="mt-4 rounded-xl border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
-          Upload input will be here.
-        </div>
-      </section>
-
-      <section id="panel-video" class="tab-panel hidden">
-        <h2 class="text-base font-semibold mb-2">Video analysis</h2>
-        <p class="text-sm text-zinc-400">
-          Placeholder UI. Подключим позже, когда появится video-service.
-        </p>
-        <div class="mt-4 rounded-xl border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
-          Upload input will be here.
-        </div>
-      </section>
-
-    </div>
+  <div class="mb-10">
+    <h1 class="text-3xl font-semibold tracking-tight">XAI Moderation</h1>
+    <p class="mt-2 text-sm text-zinc-500">
+      Transparent moderation across text, image, audio, and video
+    </p>
   </div>
 
-  <script>
-    const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
-    const panels = {
-      text: document.getElementById("panel-text"),
-      image: document.getElementById("panel-image"),
-      audio: document.getElementById("panel-audio"),
-      video: document.getElementById("panel-video"),
-    };
+  <div class="mb-8 flex gap-3">
+    <button class="rounded-full bg-zinc-900 text-white px-5 py-2 text-sm font-medium shadow">
+      Text
+    </button>
+    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+      Image
+    </button>
+    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+      Audio
+    </button>
+    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+      Video
+    </button>
+  </div>
 
-    function setActiveTab(tab) {
-      Object.keys(panels).forEach(key => {
-        panels[key].classList.toggle("hidden", key !== tab);
-      });
+  <section class="bg-white rounded-2xl shadow-lg p-6">
 
-      tabButtons.forEach(btn => {
-        const isActive = btn.dataset.tab === tab;
-        btn.classList.toggle("bg-zinc-900", isActive);
-        btn.classList.toggle("text-zinc-100", isActive);
-        btn.classList.toggle("text-zinc-300", !isActive);
-      });
-    }
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold">Text analysis</h2>
+    </div>
 
-    tabButtons.forEach(btn => {
-      btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+    <label class="block text-sm text-zinc-600 mb-2">Paste text</label>
+    <textarea id="textInput"
+      class="w-full min-h-40 rounded-xl bg-zinc-50 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-300"
+      placeholder="Type something..."></textarea>
+
+    <div class="mt-4 flex items-center gap-3">
+      <button id="submitText"
+        class="rounded-xl bg-zinc-900 text-white px-5 py-2 text-sm font-medium hover:bg-zinc-800 disabled:opacity-50">
+        Analyze
+      </button>
+
+      <button id="clearText"
+        class="rounded-xl bg-zinc-100 px-5 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200">
+        Clear
+      </button>
+
+      <span id="statusText" class="text-sm text-zinc-500"></span>
+    </div>
+
+    <div id="resultSection" class="mt-8 hidden">
+      <h3 class="text-sm font-semibold text-zinc-700 mb-2">Result</h3>
+
+      <div id="resultBox"
+        class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<script>
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const textInput = document.getElementById("textInput");
+const submitBtn = document.getElementById("submitText");
+const clearBtn = document.getElementById("clearText");
+const statusText = document.getElementById("statusText");
+const resultBox = document.getElementById("resultBox");
+const resultSection = document.getElementById("resultSection");
+
+resultSection.classList.add("hidden");
+
+clearBtn.onclick = () => {
+  textInput.value = "";
+  statusText.textContent = "";
+  resultBox.innerHTML = "";
+  resultSection.classList.add("hidden");
+};
+
+submitBtn.onclick = async () => {
+  const text = textInput.value.trim();
+  if (!text) {
+    statusText.textContent = "Enter text first";
+    return;
+  }
+
+  submitBtn.disabled = true;
+  statusText.textContent = "Analyzing...";
+  resultSection.classList.add("hidden");
+
+  try {
+    const res = await fetch("/api/v1/text/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
     });
 
-    setActiveTab("text");
+    const data = await res.json();
+    renderVisualResult(text, data.data);
+    statusText.textContent = "Done ✓";
+    resultSection.classList.remove("hidden");
 
-    const textInput = document.getElementById("textInput");
-    const submitBtn = document.getElementById("submitText");
-    const clearBtn = document.getElementById("clearText");
-    const statusText = document.getElementById("statusText");
-    const resultBox = document.getElementById("resultBox");
-    const copyBtn = document.getElementById("copyResult");
+  } catch {
+    resultBox.innerHTML = `<span class="text-red-600">Service error</span>`;
+    resultSection.classList.remove("hidden");
+    statusText.textContent = "Error";
+  } finally {
+    submitBtn.disabled = false;
+  }
+};
 
-    function pretty(obj) {
-      return JSON.stringify(obj, null, 2);
-    }
+function renderVisualResult(originalText, apiData) {
+  const confidence = apiData.confidence || 0;
 
-    function setStatus(msg) {
-      statusText.textContent = msg || "";
-    }
+  let verdict, color;
+  if (confidence < 40) {
+    verdict = "Not toxic";
+    color = "text-green-600";
+  } else if (confidence < 70) {
+    verdict = "Possibly toxic";
+    color = "text-orange-500";
+  } else {
+    verdict = "Toxic";
+    color = "text-red-600";
+  }
 
-    function setResult(objOrString) {
-      resultBox.textContent = typeof objOrString === "string" ? objOrString : pretty(objOrString);
-    }
+  const words = apiData.toxic_keywords || [];
 
-    clearBtn.addEventListener("click", () => {
-      textInput.value = "";
-      setStatus("");
-      setResult({ info: "Waiting for request..." });
-    });
+  if (!words.length) {
+    resultBox.innerHTML = `
+      <div class="mb-4">
+        <div class="text-4xl font-semibold ${color}">${confidence}%</div>
+        <div class="text-sm ${color}">${verdict}</div>
+      </div>
+      <div class="text-sm leading-relaxed">${originalText}</div>
+    `;
+    return;
+  }
 
-    copyBtn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(resultBox.textContent);
-        setStatus("Copied ✅");
-        setTimeout(() => setStatus(""), 1200);
-      } catch {
-        setStatus("Copy failed");
-        setTimeout(() => setStatus(""), 1200);
-      }
-    });
+  const percents = words.map(w => w.percent);
+  const minP = Math.min(...percents);
+  const maxP = Math.max(...percents);
 
-    submitBtn.addEventListener("click", async () => {
-      const text = (textInput.value || "").trim();
-      if (!text) {
-        setStatus("Enter text first");
-        return;
-      }
+  const percentMap = new Map(words.map(w => [w.token.toLowerCase(), w.percent]));
+  const tokens = originalText.split(/(\s+)/);
 
-      submitBtn.disabled = true;
-      setStatus("Analyzing...");
-      setResult({ info: "Sending request..." });
+  const html = tokens.map(token => {
+  const clean = token.toLowerCase().replace(/[^\w']/g, "");
+    if (!percentMap.has(clean)) return token;
 
-      try {
-        const res = await fetch("/api/v1/text/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text })
-        });
+    const p = percentMap.get(clean);
+    const t = (p - minP) / (maxP - minP || 1);
+    const alpha = 0.1 + t * 0.7;
 
-        const raw = await res.text();
-        let data;
-        try { data = JSON.parse(raw); } catch { data = { raw }; }
+      return `
+        <span
+          title="Impact: ${p}%"
+          style="background:rgba(220,38,38,${alpha});
+                padding:2px 4px;
+                border-radius:4px;
+                font-weight:500;
+                cursor:help;">
+          ${token}
+        </span>
+      `;
+  }).join("");
 
-        if (!res.ok) {
-          setResult({
-            error: "Request failed",
-            status: res.status,
-            response: data
-          });
-          setStatus("Error");
-          return;
-        }
+  resultBox.innerHTML = `
+    <div class="mb-4">
+      <div class="text-4xl font-semibold ${color}">${confidence}%</div>
+      <div class="text-sm ${color}">${verdict}</div>
+    </div>
+    <div class="text-sm leading-relaxed">${html}</div>
+  `;
+}
+</script>
 
-        setResult(data);
-        setStatus("Done ✅");
-      } catch (e) {
-        setResult({
-          error: "Network error",
-          message: String(e)
-        });
-        setStatus("Error");
-      } finally {
-        submitBtn.disabled = false;
-        setTimeout(() => setStatus(""), 1500);
-      }
-    });
-  </script>
 </body>
 </html>

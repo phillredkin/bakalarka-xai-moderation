@@ -1,4 +1,6 @@
+captum
+torch
+transformers
 fastapi
-uvicorn[standard]
-pydantic
+uvicorn
 requests

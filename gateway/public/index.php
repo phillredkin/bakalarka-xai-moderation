@@ -10,10 +10,15 @@ if ($path === '/' || $path === '') {
     exit;
 }
 
+
 if ($path === '/health') {
-    echo json_encode(["status" => "ok", "service" => "gateway"]);
+    echo json_encode([
+        "status" => "ok",
+        "service" => "gateway"
+    ]);
     exit;
 }
+
 
 if ($path !== '/api/v1/text/analyze' || $_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(404);
@@ -21,12 +26,35 @@ if ($path !== '/api/v1/text/analyze' || $_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$body = file_get_contents('php://input');
-if (!$body) {
+
+$rawBody = file_get_contents('php://input');
+if (!$rawBody) {
     http_response_code(400);
     echo json_encode(["error" => "Empty body"]);
     exit;
 }
+
+$data = json_decode($rawBody, true);
+if (!is_array($data)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Invalid JSON"]);
+    exit;
+}
+
+
+if (isset($data['text'])) {
+    $payload = ['text' => $data['text']];
+} elseif (isset($data['input'])) {
+    $payload = ['text' => $data['input']];
+} elseif (isset($data['message'])) {
+    $payload = ['text' => $data['message']];
+} else {
+    http_response_code(400);
+    echo json_encode(["error" => "Missing text field"]);
+    exit;
+}
+
+$body = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
 $redis = new Redis();
 $redis->connect(
@@ -63,9 +91,11 @@ $ch = curl_init($url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST => true,
-    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+    CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json'
+    ],
     CURLOPT_POSTFIELDS => $body,
-    CURLOPT_TIMEOUT => 10,
+    CURLOPT_TIMEOUT => 15,
 ]);
 
 $response = curl_exec($ch);

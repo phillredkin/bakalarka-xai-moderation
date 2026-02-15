@@ -18,20 +18,28 @@
   </div>
 
   <div class="mb-8 flex gap-3">
-    <button class="rounded-full bg-zinc-900 text-white px-5 py-2 text-sm font-medium shadow">
+    <button id="tabText"
+      class="tab-btn rounded-full px-5 py-2 text-sm font-medium shadow">
       Text
     </button>
-    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+
+    <button id="tabImage"
+      class="tab-btn rounded-full px-5 py-2 text-sm font-medium shadow">
       Image
     </button>
-    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+
+    <button id="tabAudio"
+      class="tab-btn rounded-full px-5 py-2 text-sm font-medium shadow">
       Audio
     </button>
-    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+
+    <button id="tabVideo"
+      class="tab-btn rounded-full px-5 py-2 text-sm font-medium shadow">
       Video
     </button>
   </div>
 
+  <!-- TEXT SERIVE -->
   <section class="bg-white rounded-2xl shadow-lg p-6">
 
     <div class="flex items-center justify-between mb-4">
@@ -66,6 +74,59 @@
     </div>
 
   </section>
+
+
+  <!-- AUDIO SERVICE -->
+  <section id="audioSection" class="bg-white rounded-2xl shadow-lg p-6 mt-10 hidden">
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold">Audio analysis</h2>
+    </div>
+
+    <div id="audioDropArea"
+      class="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-xl p-10 bg-zinc-50 transition hover:bg-zinc-100 cursor-pointer">
+
+      <svg width="64px" height="64px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M13 14H8.81763C7.20089 14 5.83017 15.1888 5.60153 16.7893V16.7893C5.29858 18.9099 7.09499 20.7381 9.22059 20.4724L9.77821 20.4027C11.6188 20.1727 13 18.608 13 16.7531V7.38851C13 5.77017 13 4.961 13.474 4.4015C13.9479 3.84201 14.7461 3.70899 16.3424 3.44293L18.6991 3.05015C18.8349 3.02751 18.9028 3.01619 18.9395 3.05588C18.9761 3.09557 18.9594 3.16236 18.926 3.29593L18.0307 6.87721C18.0158 6.93689 18.0083 6.96672 17.9873 6.98673C17.9664 7.00673 17.9362 7.01276 17.8759 7.02482L13 8" stroke="#33363F" stroke-width="2"></path> </g></svg>
+
+      
+      <p class="mt-4 text-sm text-zinc-600">
+        Drag & Drop audio file here
+      </p>
+
+      <p class="text-xs text-zinc-400 mt-1">
+        MP3 or WAV
+      </p>
+
+      <input type="file" id="audioInput" accept="audio/*" hidden />
+    </div>
+
+    <div id="audioFileInfo" class="mt-6 hidden">
+      <div class="flex justify-between items-center bg-zinc-100 rounded-xl px-4 py-3 text-sm">
+        <span id="audioFileName"></span>
+        <button id="removeAudio"
+          class="text-red-600 hover:text-red-700 font-medium">
+          Remove
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <button id="submitAudio"
+        class="rounded-xl bg-zinc-900 text-white px-6 py-2 text-sm font-medium hover:bg-zinc-800 disabled:opacity-50">
+        Analyze Audio
+      </button>
+    </div>
+
+    <div id="audioResultSection" class="mt-8 hidden">
+      <h3 class="text-sm font-semibold text-zinc-700 mb-2">Result</h3>
+
+      <div id="audioResultBox"
+        class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
+      </div>
+    </div>
+
+  </section>
+
 </div>
 
 <script>
@@ -185,6 +246,144 @@ function renderVisualResult(originalText, apiData) {
     <div class="text-sm leading-relaxed">${html}</div>
   `;
 }
+</script>
+
+
+<script>
+  const audioSection = document.getElementById("audioSection");
+  const audioDropArea = document.getElementById("audioDropArea");
+  const audioInput = document.getElementById("audioInput");
+  const audioFileInfo = document.getElementById("audioFileInfo");
+  const audioFileName = document.getElementById("audioFileName");
+  const removeAudio = document.getElementById("removeAudio");
+  const submitAudio = document.getElementById("submitAudio");
+  const audioResultSection = document.getElementById("audioResultSection");
+  const audioResultBox = document.getElementById("audioResultBox");
+
+  let selectedAudioFile = null;
+
+  document.querySelectorAll("button")[2].addEventListener("click", () => {
+    document.querySelector("section").classList.add("hidden");
+    audioSection.classList.remove("hidden");
+  });
+
+  audioDropArea.addEventListener("click", () => audioInput.click());
+
+  audioDropArea.addEventListener("dragover", e => {
+    e.preventDefault();
+    audioDropArea.classList.add("bg-zinc-200");
+  });
+
+  audioDropArea.addEventListener("dragleave", () => {
+    audioDropArea.classList.remove("bg-zinc-200");
+  });
+
+  audioDropArea.addEventListener("drop", e => {
+    e.preventDefault();
+    audioDropArea.classList.remove("bg-zinc-200");
+
+    const file = e.dataTransfer.files[0];
+    handleAudioFile(file);
+  });
+
+  audioInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    handleAudioFile(file);
+  });
+
+  function handleAudioFile(file) {
+    if (!file) return;
+
+    if (!file.type.startsWith("audio/")) {
+      alert("Only audio files allowed");
+      return;
+    }
+
+    selectedAudioFile = file;
+    audioFileName.textContent = file.name;
+    audioFileInfo.classList.remove("hidden");
+  }
+
+  removeAudio.onclick = () => {
+    selectedAudioFile = null;
+    audioFileInfo.classList.add("hidden");
+    audioInput.value = "";
+    audioResultSection.classList.add("hidden");
+  };
+
+  submitAudio.onclick = () => {
+    if (!selectedAudioFile) {
+      alert("Select audio first");
+      return;
+    }
+
+    audioResultBox.innerHTML = `
+      <div class="text-2xl font-semibold text-zinc-900">Transcription...</div>
+      <div class="text-sm text-zinc-500 mt-2">Audio file ready to send to backend</div>
+    `;
+    audioResultSection.classList.remove("hidden");
+  };
+</script>
+
+
+<script>
+  const tabText = document.getElementById("tabText");
+  const tabAudio = document.getElementById("tabAudio");
+  const tabImage = document.getElementById("tabImage");
+  const tabVideo = document.getElementById("tabVideo");
+
+  const textSection = document.querySelector("section");
+  const audioSectionEl = document.getElementById("audioSection");
+
+  function setActiveTab(activeTab) {
+    const tabs = document.querySelectorAll(".tab-btn");
+
+    tabs.forEach(tab => {
+      tab.classList.remove(
+        "bg-zinc-900",
+        "text-white",
+        "hover:bg-zinc-100"
+      );
+
+      tab.classList.add(
+        "bg-white",
+        "text-zinc-600",
+        "hover:bg-zinc-100"
+      );
+    });
+
+    activeTab.classList.remove(
+      "bg-white",
+      "text-zinc-600",
+      "hover:bg-zinc-100"
+    );
+
+    activeTab.classList.add(
+      "bg-zinc-900",
+      "text-white"
+    );
+  }
+
+
+  function showSection(sectionName) {
+    textSection.classList.add("hidden");
+    audioSectionEl.classList.add("hidden");
+
+    if (sectionName === "text") {
+      textSection.classList.remove("hidden");
+      setActiveTab(tabText);
+    }
+
+    if (sectionName === "audio") {
+      audioSectionEl.classList.remove("hidden");
+      setActiveTab(tabAudio);
+    }
+  }
+
+  showSection("text");
+
+  tabText.onclick = () => showSection("text");
+  tabAudio.onclick = () => showSection("audio");
 </script>
 
 </body>

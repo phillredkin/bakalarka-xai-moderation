@@ -30,6 +30,15 @@ services:
       - appnet
     environment:
       HF_TOKEN: ${HF_TOKEN}
+  
+  audio-service:
+    image: ghcr.io/phillredkin/bakalarka-xai-moderation/audio-service:${TAG:-latest}
+    build:
+      context: ../services/audio-service
+    ports:
+      - "8002:8000"
+    networks:
+      - appnet
 
   redis:
     image: redis:7-alpine

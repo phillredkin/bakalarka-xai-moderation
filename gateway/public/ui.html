@@ -311,18 +311,46 @@ function renderVisualResult(originalText, apiData) {
     audioResultSection.classList.add("hidden");
   };
 
-  submitAudio.onclick = () => {
-    if (!selectedAudioFile) {
-      alert("Select audio first");
-      return;
-    }
+	submitAudio.onclick = async () => {
+		if (!selectedAudioFile) {
+			return alert("Select audio first");
+		}
 
-    audioResultBox.innerHTML = `
-      <div class="text-2xl font-semibold text-zinc-900">Transcription...</div>
-      <div class="text-sm text-zinc-500 mt-2">Audio file ready to send to backend</div>
-    `;
-    audioResultSection.classList.remove("hidden");
-  };
+		submitAudio.disabled = true;
+		audioResultSection.classList.remove("hidden");
+		audioResultBox.innerHTML = "Transcription + analysis...";
+
+		try {
+		const fd = new FormData();
+		fd.append("file", selectedAudioFile);
+
+		const res = await fetch("/api/v1/audio/analyze", {
+			method: "POST",
+			body: fd
+		});
+
+		const data = await res.json();
+
+		if (!data.audio || !data.moderation) {
+			throw new Error("Invalid response");
+		}
+
+		renderVisualResult(
+			data.audio.text,
+			data.moderation.data
+		);
+
+		audioResultBox.innerHTML = resultBox.innerHTML;
+
+		} catch (e) {
+		audioResultBox.innerHTML =
+			`<span class="text-red-600">Service error</span>`;
+		} finally {
+		submitAudio.disabled = false;
+		}
+	};
+
+
 </script>
 
 

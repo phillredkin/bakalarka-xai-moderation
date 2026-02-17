@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>XAI Moderation</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="min-h-screen bg-zinc-100 text-zinc-900">
@@ -105,7 +106,7 @@
         <span id="audioFileName"></span>
         <button id="removeAudio"
           class="text-red-600 hover:text-red-700 font-medium">
-          Remove
+          <i class="fa-solid fa-trash"></i>
         </button>
       </div>
     </div>
@@ -123,6 +124,77 @@
       <div id="audioResultBox"
         class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
       </div>
+    </div>
+
+  </section>
+
+
+
+  <!-- IMAGE SERVICE -->
+  <section id="imageSection" class="bg-white rounded-2xl shadow-lg p-6 mt-10 hidden">
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold">Image analysis</h2>
+    </div>
+
+    <div class="flex gap-3 mb-6">
+      <button id="modeUpload"
+        class="image-mode-btn rounded-full px-4 py-1 text-sm bg-zinc-900 text-white">
+        Upload
+      </button>
+
+      <button id="modeUrl"
+        class="image-mode-btn rounded-full px-4 py-1 text-sm bg-zinc-100 text-zinc-600">
+        URL
+      </button>
+    </div>
+
+    <div id="imageUploadBlock">
+
+      <div id="imageDropArea"
+        class="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-xl p-10 bg-zinc-50 transition hover:bg-zinc-100 cursor-pointer">
+
+        <svg width="64px" height="64px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Stock_cut" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <desc></desc> <g> <rect fill="none" height="22" stroke="#33363F" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" width="30" x="1" y="5"></rect> <polygon fill="none" points="31,27 21,17 11,27 " stroke="#33363F" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></polygon> <polygon fill="none" points="18,20 9,11 1,19 1,27 11,27 " stroke="#33363F" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></polygon> <circle cx="19" cy="11" fill="none" r="2" stroke="#33363F" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></circle> </g> </g></svg>
+
+        <p class="text-sm text-zinc-600">
+          Drag & Drop image here
+        </p>
+
+        <p class="text-xs text-zinc-400 mt-1">
+          JPG, PNG
+        </p>
+
+        <input type="file" id="imageInput" accept="image/*" hidden />
+      </div>
+
+    </div>
+
+    <div id="imageUrlBlock" class="hidden">
+      <input type="text"
+        id="imageUrlInput"
+        placeholder="Paste image URL..."
+        class="w-full rounded-xl bg-zinc-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-300" />
+    </div>
+
+    <div id="imagePreviewSection" class="mt-6 hidden">
+      <h3 class="text-sm font-semibold text-zinc-700 mb-2">Preview</h3>
+
+      <div class="relative">
+        <img id="imagePreview"
+          class="rounded-xl shadow max-h-80 object-contain mx-auto" />
+
+        <button id="removeImage"
+          class="absolute top-2 right-2 bg-white rounded-full px-3 py-1 text-xs shadow text-red-600 hover:bg-red-50">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <button id="submitImage"
+        class="rounded-xl bg-zinc-900 text-white px-6 py-2 text-sm font-medium hover:bg-zinc-800 disabled:opacity-50">
+        Analyze Image
+      </button>
     </div>
 
   </section>
@@ -355,63 +427,196 @@ function renderVisualResult(originalText, apiData) {
 
 
 <script>
-  const tabText = document.getElementById("tabText");
-  const tabAudio = document.getElementById("tabAudio");
-  const tabImage = document.getElementById("tabImage");
-  const tabVideo = document.getElementById("tabVideo");
+const tabText = document.getElementById("tabText");
+const tabAudio = document.getElementById("tabAudio");
+const tabImage = document.getElementById("tabImage");
+const tabVideo = document.getElementById("tabVideo");
 
-  const textSection = document.querySelector("section");
-  const audioSectionEl = document.getElementById("audioSection");
+const textSection = document.querySelector("section:not(#audioSection):not(#imageSection)");
+const audioSectionEl = document.getElementById("audioSection");
+const imageSectionEl = document.getElementById("imageSection");
 
-  function setActiveTab(activeTab) {
-    const tabs = document.querySelectorAll(".tab-btn");
+function setActiveTab(activeTab) {
+  const tabs = document.querySelectorAll(".tab-btn");
 
-    tabs.forEach(tab => {
-      tab.classList.remove(
-        "bg-zinc-900",
-        "text-white",
-        "hover:bg-zinc-100"
-      );
+  tabs.forEach(tab => {
+    tab.classList.remove("bg-zinc-900", "text-white");
+    tab.classList.add("bg-white", "text-zinc-600", "hover:bg-zinc-100");
+  });
 
-      tab.classList.add(
-        "bg-white",
-        "text-zinc-600",
-        "hover:bg-zinc-100"
-      );
-    });
+  activeTab.classList.remove("bg-white", "text-zinc-600", "hover:bg-zinc-100");
+  activeTab.classList.add("bg-zinc-900", "text-white");
+}
 
-    activeTab.classList.remove(
-      "bg-white",
-      "text-zinc-600",
-      "hover:bg-zinc-100"
-    );
+function showSection(sectionName) {
+  textSection.classList.add("hidden");
+  audioSectionEl.classList.add("hidden");
+  imageSectionEl.classList.add("hidden");
 
-    activeTab.classList.add(
-      "bg-zinc-900",
-      "text-white"
-    );
+  if (sectionName === "text") {
+    textSection.classList.remove("hidden");
+    setActiveTab(tabText);
   }
 
-
-  function showSection(sectionName) {
-    textSection.classList.add("hidden");
-    audioSectionEl.classList.add("hidden");
-
-    if (sectionName === "text") {
-      textSection.classList.remove("hidden");
-      setActiveTab(tabText);
-    }
-
-    if (sectionName === "audio") {
-      audioSectionEl.classList.remove("hidden");
-      setActiveTab(tabAudio);
-    }
+  if (sectionName === "audio") {
+    audioSectionEl.classList.remove("hidden");
+    setActiveTab(tabAudio);
   }
 
-  showSection("text");
+  if (sectionName === "image") {
+    imageSectionEl.classList.remove("hidden");
+    setActiveTab(tabImage);
+  }
+}
 
-  tabText.onclick = () => showSection("text");
-  tabAudio.onclick = () => showSection("audio");
+showSection("text");
+
+tabText.onclick = () => showSection("text");
+tabAudio.onclick = () => showSection("audio");
+tabImage.onclick = () => showSection("image");
+</script>
+
+
+
+<script>
+const modeUpload = document.getElementById("modeUpload");
+const modeUrl = document.getElementById("modeUrl");
+
+const imageUploadBlock = document.getElementById("imageUploadBlock");
+const imageUrlBlock = document.getElementById("imageUrlBlock");
+
+const imageDropArea = document.getElementById("imageDropArea");
+const imageInput = document.getElementById("imageInput");
+const imageUrlInput = document.getElementById("imageUrlInput");
+
+const imagePreviewSection = document.getElementById("imagePreviewSection");
+const imagePreview = document.getElementById("imagePreview");
+const removeImage = document.getElementById("removeImage");
+const submitImage = document.getElementById("submitImage");
+
+let selectedImageFile = null;
+let selectedImageUrl = null;
+
+function setImageMode(mode) {
+  document.querySelectorAll(".image-mode-btn").forEach(btn => {
+    btn.classList.remove("bg-zinc-900", "text-white");
+    btn.classList.add("bg-zinc-100", "text-zinc-600");
+  });
+
+  if (mode === "upload") {
+    modeUpload.classList.remove("bg-zinc-100", "text-zinc-600");
+    modeUpload.classList.add("bg-zinc-900", "text-white");
+
+    imageUploadBlock.classList.remove("hidden");
+    imageUrlBlock.classList.add("hidden");
+  }
+
+  if (mode === "url") {
+    modeUrl.classList.remove("bg-zinc-100", "text-zinc-600");
+    modeUrl.classList.add("bg-zinc-900", "text-white");
+
+    imageUploadBlock.classList.add("hidden");
+    imageUrlBlock.classList.remove("hidden");
+  }
+
+  clearImage();
+}
+
+modeUpload.onclick = () => setImageMode("upload");
+modeUrl.onclick = () => setImageMode("url");
+
+function showPreview(src) {
+  imagePreview.src = src;
+  imagePreviewSection.classList.remove("hidden");
+}
+
+function clearImage() {
+  selectedImageFile = null;
+  selectedImageUrl = null;
+  imagePreview.src = "";
+  imagePreviewSection.classList.add("hidden");
+  imageInput.value = "";
+  imageUrlInput.value = "";
+}
+
+removeImage.onclick = clearImage;
+
+imageDropArea.addEventListener("click", () => imageInput.click());
+
+imageDropArea.addEventListener("dragover", e => {
+  e.preventDefault();
+  imageDropArea.classList.add("bg-zinc-200");
+});
+
+imageDropArea.addEventListener("dragleave", () => {
+  imageDropArea.classList.remove("bg-zinc-200");
+});
+
+imageDropArea.addEventListener("drop", e => {
+  e.preventDefault();
+  imageDropArea.classList.remove("bg-zinc-200");
+  const file = e.dataTransfer.files[0];
+  handleFile(file);
+});
+
+imageInput.addEventListener("change", e => {
+  handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Only image files allowed");
+    return;
+  }
+
+  selectedImageFile = file;
+  selectedImageUrl = null;
+
+  const reader = new FileReader();
+  reader.onload = e => showPreview(e.target.result);
+  reader.readAsDataURL(file);
+}
+
+imageUrlInput.addEventListener("input", () => {
+  const url = imageUrlInput.value.trim();
+
+  if (!url) {
+    clearImage();
+    return;
+  }
+
+  selectedImageUrl = url;
+  selectedImageFile = null;
+
+  showPreview(url);
+});
+
+submitImage.onclick = async () => {
+  if (!selectedImageFile && !selectedImageUrl) {
+    return alert("Select image or enter URL");
+  }
+
+  submitImage.disabled = true;
+
+  const formData = new FormData();
+
+  if (selectedImageFile) {
+    formData.append("file", selectedImageFile);
+  }
+
+  if (selectedImageUrl) {
+    formData.append("url", selectedImageUrl);
+  }
+
+  console.log("Ready to send to backend:", formData);
+
+  setTimeout(() => {
+    alert("Backend call placeholder ✔");
+    submitImage.disabled = false;
+  }, 800);
+};
 </script>
 
 </body>

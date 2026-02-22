@@ -182,6 +182,10 @@
       <div class="relative">
         <img id="imagePreview"
           class="rounded-xl shadow max-h-80 object-contain mx-auto" />
+        
+        <div id="imageError" class="hidden text-center text-red-600 text-sm mt-4">
+          Image not found :(
+        </div>  
 
         <button id="removeImage"
           class="absolute top-2 right-2 bg-white rounded-full px-3 py-1 text-xs shadow text-red-600 hover:bg-red-50">
@@ -196,7 +200,11 @@
         Analyze Image
       </button>
     </div>
+    
 
+    <div id="ocrResult"
+        class="mt-6 whitespace-pre-wrap text-sm bg-zinc-50 p-4 rounded-xl hidden">
+    </div>
   </section>
 
 </div>
@@ -494,8 +502,17 @@ const imagePreview = document.getElementById("imagePreview");
 const removeImage = document.getElementById("removeImage");
 const submitImage = document.getElementById("submitImage");
 
+const imageError = document.getElementById('imageError');
+
+imagePreview.onerror = () => {
+  imagePreview.classList.add('hidden');
+  imageError.classList.remove('hidden');
+  removeImage.classList.add('hidden');
+};
+
 let selectedImageFile = null;
 let selectedImageUrl = null;
+
 
 function setImageMode(mode) {
   document.querySelectorAll(".image-mode-btn").forEach(btn => {
@@ -526,11 +543,15 @@ modeUpload.onclick = () => setImageMode("upload");
 modeUrl.onclick = () => setImageMode("url");
 
 function showPreview(src) {
+  imageError.classList.add('hidden');
+  imagePreview.classList.remove('hidden');
   imagePreview.src = src;
   imagePreviewSection.classList.remove("hidden");
 }
 
 function clearImage() {
+  imageError.classList.add('hidden');
+  imagePreview.classList.remove('hidden');
   selectedImageFile = null;
   selectedImageUrl = null;
   imagePreview.src = "";
@@ -593,29 +614,52 @@ imageUrlInput.addEventListener("input", () => {
   showPreview(url);
 });
 
+const ocrBox = document.getElementById("ocrResult");
+
 submitImage.onclick = async () => {
   if (!selectedImageFile && !selectedImageUrl) {
-    return alert("Select image or enter URL");
+    return alert("Upload image or enter URL");
   }
 
   submitImage.disabled = true;
+  ocrBox.classList.add("hidden");
+  ocrBox.innerText = "";
 
-  const formData = new FormData();
+  try {
+    let res;
 
-  if (selectedImageFile) {
-    formData.append("file", selectedImageFile);
-  }
+    if (selectedImageFile) {
+      const fd = new FormData();
+      fd.append("file", selectedImageFile);
 
-  if (selectedImageUrl) {
-    formData.append("url", selectedImageUrl);
-  }
+      res = await fetch("/api/v1/image/analyze", {
+        method: "POST",
+        body: fd
+      });
+    }
 
-  console.log("Ready to send to backend:", formData);
+    else if (selectedImageUrl) {
+      res = await fetch("/api/v1/image/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: selectedImageUrl })
+      });
+    }
 
-  setTimeout(() => {
-    alert("Backend call placeholder ✔");
+    const data = await res.json();
+
+    if (data.text) {
+      ocrBox.classList.remove("hidden");
+      ocrBox.innerText = data.text;
+    } else {
+      alert(data.error || "OCR failed");
+    }
+
+  } catch (e) {
+    alert("Service error");
+  } finally {
     submitImage.disabled = false;
-  }, 800);
+  }
 };
 </script>
 

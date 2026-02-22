@@ -202,6 +202,60 @@ if ($path === '/api/v1/text/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
+if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $imageServiceUrl = getenv('IMAGE_SERVICE_URL') ?: 'http://image-service:8000/analyze';
+
+    $ch = curl_init($imageServiceUrl);
+
+    if (!empty($_FILES['file'])) {
+
+        $fileTmp = $_FILES['file']['tmp_name'];
+        $fileName = $_FILES['file']['name'];
+
+        $cfile = new CURLFile($fileTmp, mime_content_type($fileTmp), $fileName);
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => ['file' => $cfile],
+            CURLOPT_TIMEOUT => 60
+        ]);
+    }
+
+    else {
+
+        $rawBody = file_get_contents('php://input');
+        if (!$rawBody) {
+            http_response_code(400);
+            echo json_encode(["error" => "Empty body"]);
+            exit;
+        }
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS => $rawBody,
+            CURLOPT_TIMEOUT => 60
+        ]);
+    }
+
+    $response = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false || $code !== 200) {
+        http_response_code(502);
+        echo json_encode(["error" => "image-service unavailable"]);
+        exit;
+    }
+
+    echo $response;
+    exit;
+}
+
+
 http_response_code(404);
 echo json_encode(["error" => "Not Found"]);
 exit;

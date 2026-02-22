@@ -10,6 +10,7 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-test}
       TEXT_SERVICE_URL: http://text-service:8000/analyze
+      IMAGE_SERVICE_URL: http://image-service:8000/analyze
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_TTL: 300
@@ -39,6 +40,17 @@ services:
       - "8002:8000"
     networks:
       - appnet
+
+  image-service:
+    image: ghcr.io/phillredkin/bakalarka-xai-moderation/image-service:${TAG:-latest}
+    build:
+      context: ../services/image-service
+    ports:
+      - "8003:8000"
+    networks:
+      - appnet
+    environment:
+      OCR_SPACE_API_KEY: ${OCR_SPACE_API_KEY}
 
   redis:
     image: redis:7-alpine

@@ -51,6 +51,7 @@ services:
       - appnet
     environment:
       OCR_SPACE_API_KEY: ${OCR_SPACE_API_KEY}
+      SIGHTENGINE_API_KEY: ${SIGHTENGINE_API_KEY}
 
   redis:
     image: redis:7-alpine

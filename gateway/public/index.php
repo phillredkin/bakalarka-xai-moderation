@@ -203,8 +203,17 @@ if ($path === '/api/v1/text/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $redis = new Redis();
+    $redis->connect(
+        getenv('REDIS_HOST') ?: 'redis',
+        (int)(getenv('REDIS_PORT') ?: 6379)
+    );
+
+    $ttl = (int)(getenv('REDIS_TTL') ?: 300);
 
     $imageServiceUrl = getenv('IMAGE_SERVICE_URL') ?: 'http://image-service:8000/analyze';
+
+    $fileHash = null;
 
     $ch = curl_init($imageServiceUrl);
 
@@ -212,6 +221,14 @@ if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') 
 
         $fileTmp = $_FILES['file']['tmp_name'];
         $fileName = $_FILES['file']['name'];
+
+        $fileHash = sha1_file($fileTmp);
+        $cacheKey = 'cache:image:' . $fileHash;
+
+        if ($redis->exists($cacheKey)) {
+            echo $redis->get($cacheKey);
+            exit;
+        }
 
         $cfile = new CURLFile($fileTmp, mime_content_type($fileTmp), $fileName);
 
@@ -232,6 +249,14 @@ if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') 
             exit;
         }
 
+        $fileHash = sha1($rawBody);
+        $cacheKey = 'cache:image:' . $fileHash;
+
+        if ($redis->exists($cacheKey)) {
+            echo $redis->get($cacheKey);
+            exit;
+        }
+
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
@@ -241,17 +266,55 @@ if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') 
         ]);
     }
 
-    $response = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $imageResponse = curl_exec($ch);
+    $imageCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($response === false || $code !== 200) {
+    if ($imageResponse === false || $imageCode !== 200) {
         http_response_code(502);
         echo json_encode(["error" => "image-service unavailable"]);
         exit;
     }
 
-    echo $response;
+    $imageData = json_decode($imageResponse, true);
+    $extractedText = $imageData['text'] ?? '';
+
+    if (!$extractedText) {
+        echo $imageResponse;
+        exit;
+    }
+
+    $textUrl = getenv('TEXT_SERVICE_URL') ?: 'http://text-service:8000/analyze';
+    $payload = json_encode(["text" => $extractedText], JSON_UNESCAPED_UNICODE);
+
+    $ch = curl_init($textUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_TIMEOUT => 30
+    ]);
+
+    $textResponse = curl_exec($ch);
+    $textCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($textResponse === false || $textCode !== 200) {
+        http_response_code(502);
+        echo json_encode(["error" => "text-service unavailable"]);
+        exit;
+    }
+
+    $finalData = json_encode([
+        "status" => "ok",
+        "ocr" => $imageData,
+        "moderation" => json_decode($textResponse, true)
+    ]);
+
+    $redis->setex($cacheKey, $ttl, $finalData);
+
+    echo $finalData;
     exit;
 }
 

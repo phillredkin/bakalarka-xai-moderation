@@ -15,7 +15,11 @@ async def analyze(request: Request, file: UploadFile = File(None)):
 
     if file:
         files = {
-            "file": (file.filename, await file.read())
+            "file": (
+                file.filename,
+                await file.read(),
+                file.content_type
+            )
         }
 
         data = {

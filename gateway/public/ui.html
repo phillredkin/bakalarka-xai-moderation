@@ -562,6 +562,8 @@ function clearImage() {
   imagePreviewSection.classList.add("hidden");
   imageInput.value = "";
   imageUrlInput.value = "";
+  imageResultSection.classList.add("hidden");
+  ocrBox.innerHTML = "";
 }
 
 removeImage.onclick = clearImage;
@@ -659,6 +661,19 @@ submitImage.onclick = async () => {
 
       imageResultSection.classList.remove("hidden");
       ocrBox.innerHTML = resultBox.innerHTML;
+
+      if (data.sightengine) {
+        ocrBox.innerHTML += `
+          <div class="mt-6">
+            <h4 class="font-semibold text-zinc-700 mb-2">
+              Visual Moderation (Sightengine)
+            </h4>
+            <pre class="text-xs bg-white p-3 rounded overflow-x-auto">
+      ${JSON.stringify(data.sightengine, null, 2)}
+            </pre>
+          </div>
+        `;
+      }
     } else {
       alert(data.error || "OCR failed");
     }

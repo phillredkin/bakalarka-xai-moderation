@@ -306,10 +306,51 @@ if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') 
         exit;
     }
 
+    $sightResponse = null;
+
+    $sightUser = getenv('SIGHTENGINE_API_USER');
+    $sightSecret = getenv('SIGHTENGINE_API_KEY');
+
+    if (!empty($_FILES['file'])) {
+
+        $sightParams = [
+            'media' => new CURLFile($fileTmp),
+            'models' => 'weapon,offensive-2.0,text-content,gore-2.0,violence,self-harm',
+            'api_user' => $sightUser,
+            'api_secret' => $sightSecret
+        ];
+
+        $chSight = curl_init('https://api.sightengine.com/1.0/check.json');
+        curl_setopt($chSight, CURLOPT_POST, true);
+        curl_setopt($chSight, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($chSight, CURLOPT_POSTFIELDS, $sightParams);
+
+    } else {
+
+        $body = json_decode($rawBody, true);
+        $imageUrl = $body['url'] ?? null;
+
+        $params = [
+            'url' => $imageUrl,
+            'models' => 'weapon,offensive-2.0,text-content,gore-2.0,violence,self-harm',
+            'api_user' => $sightUser,
+            'api_secret' => $sightSecret
+        ];
+
+        $chSight = curl_init('https://api.sightengine.com/1.0/check.json?' . http_build_query($params));
+        curl_setopt($chSight, CURLOPT_RETURNTRANSFER, true);
+    }
+
+    $sightRaw = curl_exec($chSight);
+    curl_close($chSight);
+
+    $sightResponse = json_decode($sightRaw, true);
+
     $finalData = json_encode([
         "status" => "ok",
         "ocr" => $imageData,
-        "moderation" => json_decode($textResponse, true)
+        "moderation" => json_decode($textResponse, true),
+        "sightengine" => $sightResponse
     ]);
 
     $redis->setex($cacheKey, $ttl, $finalData);

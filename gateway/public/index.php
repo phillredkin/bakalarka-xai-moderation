@@ -277,34 +277,7 @@ if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') 
     }
 
     $imageData = json_decode($imageResponse, true);
-    $extractedText = $imageData['text'] ?? '';
-
-    if (!$extractedText) {
-        echo $imageResponse;
-        exit;
-    }
-
-    $textUrl = getenv('TEXT_SERVICE_URL') ?: 'http://text-service:8000/analyze';
-    $payload = json_encode(["text" => $extractedText], JSON_UNESCAPED_UNICODE);
-
-    $ch = curl_init($textUrl);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-        CURLOPT_POSTFIELDS => $payload,
-        CURLOPT_TIMEOUT => 30
-    ]);
-
-    $textResponse = curl_exec($ch);
-    $textCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($textResponse === false || $textCode !== 200) {
-        http_response_code(502);
-        echo json_encode(["error" => "text-service unavailable"]);
-        exit;
-    }
+    $extractedText = trim($imageData['text'] ?? '');
 
     $sightResponse = null;
 
@@ -315,7 +288,7 @@ if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') 
 
         $sightParams = [
             'media' => new CURLFile($fileTmp),
-            'models' => 'weapon,offensive-2.0,text-content,gore-2.0,violence,self-harm',
+            'models' => 'weapon,offensive-2.0,text-content,gore-2.0,violence,self-harm,recreational_drug,medical',
             'api_user' => $sightUser,
             'api_secret' => $sightSecret
         ];
@@ -346,10 +319,37 @@ if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') 
 
     $sightResponse = json_decode($sightRaw, true);
 
+    $textModeration = null;
+
+    if ($extractedText !== '') {
+
+        $textUrl = getenv('TEXT_SERVICE_URL') ?: 'http://text-service:8000/analyze';
+        $payload = json_encode(["text" => $extractedText], JSON_UNESCAPED_UNICODE);
+
+        $ch = curl_init($textUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_TIMEOUT => 30
+        ]);
+
+        $textResponse = curl_exec($ch);
+        curl_close($ch);
+
+        $textModeration = json_decode($textResponse, true);
+    }
+
     $finalData = json_encode([
         "status" => "ok",
-        "ocr" => $imageData,
-        "moderation" => json_decode($textResponse, true),
+        "ocr" => [
+            "status" => "ok",
+            "text" => $extractedText !== ''
+                ? $extractedText
+                : "Text was not found on this image"
+        ],
+        "moderation" => $textModeration,
         "sightengine" => $sightResponse
     ]);
 

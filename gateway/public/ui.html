@@ -203,11 +203,7 @@
     
 
     <div id="imageResultSection" class="mt-8 hidden">
-      <h3 class="text-sm font-semibold text-zinc-700 mb-2">Result</h3>
-
-      <div id="ocrResult"
-        class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
-      </div>
+      <div id="ocrResult"></div>
     </div>
   </section>
 
@@ -508,10 +504,12 @@ const submitImage = document.getElementById("submitImage");
 
 const imageError = document.getElementById('imageError');
 
+removeImage.classList.add("hidden");
+
 imagePreview.onerror = () => {
   imagePreview.classList.add('hidden');
   imageError.classList.remove('hidden');
-  removeImage.classList.add('hidden');
+  removeImage.classList.add("hidden");
 };
 
 let selectedImageFile = null;
@@ -549,9 +547,20 @@ modeUrl.onclick = () => setImageMode("url");
 function showPreview(src) {
   imageError.classList.add('hidden');
   imagePreview.classList.remove('hidden');
+  removeImage.classList.add("hidden");
   imagePreview.src = src;
   imagePreviewSection.classList.remove("hidden");
 }
+
+imagePreview.onload = () => {
+  removeImage.classList.remove("hidden");
+};
+
+imagePreview.onerror = () => {
+  imagePreview.classList.add("hidden");
+  imageError.classList.remove("hidden");
+  removeImage.classList.add("hidden");
+};
 
 function clearImage() {
   imageError.classList.add('hidden');
@@ -564,6 +573,7 @@ function clearImage() {
   imageUrlInput.value = "";
   imageResultSection.classList.add("hidden");
   ocrBox.innerHTML = "";
+  removeImage.classList.add("hidden");
 }
 
 removeImage.onclick = clearImage;
@@ -638,11 +648,7 @@ submitImage.onclick = async () => {
     if (selectedImageFile) {
       const fd = new FormData();
       fd.append("file", selectedImageFile);
-
-      res = await fetch("/api/v1/image/analyze", {
-        method: "POST",
-        body: fd
-      });
+      res = await fetch("/api/v1/image/analyze", { method: "POST", body: fd });
     } else {
       res = await fetch("/api/v1/image/analyze", {
         method: "POST",
@@ -652,32 +658,198 @@ submitImage.onclick = async () => {
     }
 
     const data = await res.json();
+    imageResultSection.classList.remove("hidden");
 
-    if (data.moderation && data.ocr) {
-      renderVisualResult(
-        data.ocr.text,
-        data.moderation.data
-      );
+    const RAW_OCR = (data?.ocr?.text ?? "").trim();
 
-      imageResultSection.classList.remove("hidden");
-      ocrBox.innerHTML = resultBox.innerHTML;
+    const NO_TEXT_MARKERS = [
+      "text was not found on this image",
+      "no text detected",
+      "no text found",
+      "text not found"
+    ];
 
-      if (data.sightengine) {
-        ocrBox.innerHTML += `
-          <div class="mt-6">
-            <h4 class="font-semibold text-zinc-700 mb-2">
-              Visual Moderation (Sightengine)
-            </h4>
-            <pre class="text-xs bg-white p-3 rounded overflow-x-auto">
-      ${JSON.stringify(data.sightengine, null, 2)}
-            </pre>
-          </div>
-        `;
-      }
-    } else {
-      alert(data.error || "OCR failed");
+    const ocrText = RAW_OCR;
+    const ocrLower = ocrText.toLowerCase();
+
+    const hasRealText =
+      ocrText.length > 0 &&
+      !NO_TEXT_MARKERS.some(m => ocrLower.includes(m));
+
+    let moderationData = data?.moderation?.data ?? null;
+
+    if (!moderationData && hasRealText) {
+      try {
+        const textRes = await fetch("/api/v1/text/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: ocrText })
+        });
+        const textJson = await textRes.json();
+        moderationData = textJson?.data ?? null;
+      } catch (_) {}
     }
 
+    let textModerationHtml = "";
+
+    if (!hasRealText) {
+      textModerationHtml = `<div class="text-sm text-zinc-500">No text detected</div>`;
+    } else if (moderationData) {
+      renderVisualResult(ocrText, moderationData);
+      textModerationHtml = resultBox.innerHTML;
+    } else {
+      textModerationHtml = `
+        <div class="text-sm text-zinc-500 mb-2">Text moderation unavailable</div>
+        <div class="text-sm leading-relaxed">${ocrText}</div>
+      `;
+    }
+
+    const THRESHOLD = 0.01;
+    const sight = data?.sightengine ?? null;
+    const findings = [];
+
+    const prettyLabel = (raw) =>
+      raw
+        .split(".")
+        .pop()
+        .replaceAll("_", " ")
+        .toLowerCase();
+
+    function probColorClass(pct) {
+      if (pct < 40) return "text-green-600";
+      if (pct < 70) return "text-orange-500";
+      return "text-red-600";
+    }
+
+    function walk(obj, path = "") {
+      if (!obj || typeof obj !== "object") return;
+
+      for (const key in obj) {
+        if (key === "request" || key === "status" || key === "media") continue;
+
+        const val = obj[key];
+        const nextPath = path ? `${path}.${key}` : key;
+
+        if (typeof val === "number") {
+          if (key !== "prob" && val > THRESHOLD && val <= 1) {
+            findings.push({
+              label: prettyLabel(nextPath),
+              prob: val
+            });
+          }
+          continue;
+        }
+
+        if (val && typeof val === "object") {
+          walk(val, nextPath);
+        }
+      }
+    }
+
+    if (sight) walk(sight);
+    findings.sort((a, b) => b.prob - a.prob);
+    
+    function labelByScore(score) {
+      if (score >= 70) return { label: "Toxic", color: "text-red-600" };
+      if (score >= 40) return { label: "Possibly toxic", color: "text-orange-500" };
+      return { label: "Not toxic", color: "text-green-600" };
+    }
+
+    let textScore = 0;
+    let textLabelRaw = null;
+
+    if (hasRealText && moderationData) {
+      const c = Number(moderationData.confidence ?? 0);
+      textScore = c <= 1 ? (c * 100) : c;
+      textLabelRaw = (moderationData.label ?? "").toLowerCase();
+    } else {
+      textScore = 0;
+      textLabelRaw = "none";
+    }
+
+    let visualScore = 0;
+    if (findings.length) {
+      visualScore = Math.max(...findings.map(f => Math.round(f.prob * 100)));
+    } else {
+      visualScore = 0;
+    }
+
+    const textEval = labelByScore(textScore);
+    const visualEval = labelByScore(visualScore);
+
+    let finalScore = Math.max(textScore, visualScore);
+    let finalEval = labelByScore(finalScore);
+
+    if (textScore >= 70 || visualScore >= 70) {
+      finalEval = { label: "Toxic", color: "text-red-600" };
+    } else if (textScore >= 40 || visualScore >= 40) {
+      finalEval = { label: "Possibly toxic", color: "text-orange-500" };
+    } else {
+      finalEval = { label: "Not toxic", color: "text-green-600" };
+    }
+
+
+    function joinReadable(arr) {
+      if (arr.length === 0) return "";
+      if (arr.length === 1) return arr[0];
+      if (arr.length === 2) return `${arr[0]} and ${arr[1]}`;
+      return arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1];
+    }
+
+    let contentModerationHtml = "";
+
+    if (!sight) {
+      contentModerationHtml = `<div class="text-sm text-zinc-500">No visual moderation result</div>`;
+    } else if (!findings.length) {
+      contentModerationHtml = `<div class="text-sm text-zinc-500">No notable visual signals detected</div>`;
+    } else {
+      const parts = findings.map(f => {
+        const pct = Math.round(f.prob * 100);
+        const color = probColorClass(pct);
+        return `<span class="${color} font-semibold">${pct}%</span> probability of <span class="font-medium">${f.label}</span>`;
+      });
+
+      contentModerationHtml = `
+        <div class="text-sm leading-relaxed">
+          The model indicates: ${joinReadable(parts)}.
+        </div>
+      `;
+    }
+    
+    const finalHtml = `
+      <div class="text-sm font-semibold text-zinc-700 mb-2">
+          Final result
+      </div>
+      <div class="rounded-xl bg-zinc-50 p-5 shadow-inner">
+        <div class="text-3xl font-semibold ${finalEval.color}">
+          ${finalEval.label.toUpperCase()}
+        </div>
+      </div>
+    `;
+
+    ocrBox.innerHTML = `
+      <div class="space-y-6">
+        <div>
+          <div class="text-sm font-semibold text-zinc-700 mb-2">
+            Text moderation in image
+          </div>
+          <div class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
+            ${textModerationHtml}
+          </div>
+        </div>
+
+        <div>
+          <div class="text-sm font-semibold text-zinc-700 mb-2">
+            Visual content moderation
+          </div>
+          <div class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
+            ${contentModerationHtml}
+          </div>
+        </div>
+
+        ${finalHtml}
+      </div>
+    `;
   } catch (e) {
     alert("Service error");
   } finally {

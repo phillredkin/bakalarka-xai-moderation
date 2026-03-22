@@ -359,6 +359,157 @@ if ($path === '/api/v1/image/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') 
     exit;
 }
 
+if ($path === '/api/v1/video/analyze' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_FILES['file'])) {
+        http_response_code(400);
+        echo json_encode(["error" => "No video uploaded"]);
+        exit;
+    }
+
+    $uploadError = $_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE;
+
+    if ($uploadError !== UPLOAD_ERR_OK) {
+        http_response_code(400);
+        echo json_encode([
+            "error" => "Video upload failed",
+            "upload_error_code" => $uploadError
+        ]);
+        exit;
+    }
+
+    $fileTmp = $_FILES['file']['tmp_name'] ?? '';
+    $fileName = $_FILES['file']['name'] ?? 'video.mp4';
+
+    if ($fileTmp === '' || !file_exists($fileTmp)) {
+        http_response_code(400);
+        echo json_encode([
+            "error" => "Uploaded temp file is missing"
+        ]);
+        exit;
+    }
+
+    $redis = new Redis();
+    $redis->connect(
+        getenv('REDIS_HOST') ?: 'redis',
+        (int)(getenv('REDIS_PORT') ?: 6379)
+    );
+
+    $ttl = (int)(getenv('REDIS_TTL_VIDEO') ?: 3600);
+
+    $videoUrl = getenv('VIDEO_SERVICE_URL') ?: 'http://video-service:8000/analyze';
+    $mimeType = mime_content_type($fileTmp) ?: 'application/octet-stream';
+    $fileHash = sha1_file($fileTmp);
+    $cacheKey = 'cache:video:' . $fileHash;
+
+    if ($redis->exists($cacheKey)) {
+        echo $redis->get($cacheKey);
+        exit;
+    }
+
+    $ch = curl_init($videoUrl);
+    $cfile = new CURLFile($fileTmp, $mimeType, $fileName);
+
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => ['file' => $cfile],
+        CURLOPT_TIMEOUT => 300
+    ]);
+
+    $videoResponse = curl_exec($ch);
+    $videoCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($videoResponse === false || $videoCode !== 200) {
+        http_response_code(502);
+        echo json_encode([
+            "error" => "video-service unavailable",
+            "details" => $curlError ?: $videoResponse
+        ]);
+        exit;
+    }
+
+    $redis->setex($cacheKey, $ttl, $videoResponse);
+
+    echo $videoResponse;
+    exit;
+}
+
+if ($path === '/api/v1/video/status' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $mediaId = $_GET['id'] ?? '';
+
+    if ($mediaId === '') {
+        http_response_code(400);
+        echo json_encode(["error" => "Missing media id"]);
+        exit;
+    }
+
+    $sightUser = getenv('SIGHTENGINE_API_USER');
+    $sightSecret = getenv('SIGHTENGINE_API_KEY');
+
+    if (!$sightUser || !$sightSecret) {
+        http_response_code(500);
+        echo json_encode(["error" => "Sightengine credentials are missing"]);
+        exit;
+    }
+
+    $redis = new Redis();
+    $redis->connect(
+        getenv('REDIS_HOST') ?: 'redis',
+        (int)(getenv('REDIS_PORT') ?: 6379)
+    );
+
+    $ttlPending = (int)(getenv('REDIS_TTL_VIDEO_STATUS_PENDING') ?: 10);
+    $ttlFinal = (int)(getenv('REDIS_TTL_VIDEO_STATUS_FINAL') ?: 3600);
+
+    $cacheKey = 'cache:video:status:' . $mediaId;
+
+    if ($redis->exists($cacheKey)) {
+        echo $redis->get($cacheKey);
+        exit;
+    }
+
+    $params = [
+        'id' => $mediaId,
+        'api_user' => $sightUser,
+        'api_secret' => $sightSecret
+    ];
+
+    $url = 'https://api.sightengine.com/1.0/video/byid.json?' . http_build_query($params);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 60
+    ]);
+
+    $response = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($response === false || $code !== 200) {
+        http_response_code(502);
+        echo json_encode([
+            "error" => "sightengine status unavailable",
+            "details" => $curlError ?: $response
+        ]);
+        exit;
+    }
+
+    $decoded = json_decode($response, true);
+    $jobStatus = $decoded['output']['data']['status'] ?? '';
+
+    if (in_array($jobStatus, ['finished', 'failure', 'stopped'], true)) {
+        $redis->setex($cacheKey, $ttlFinal, $response);
+    } else {
+        $redis->setex($cacheKey, $ttlPending, $response);
+    }
+
+    echo $response;
+    exit;
+}
 
 http_response_code(404);
 echo json_encode(["error" => "Not Found"]);

@@ -1,5 +1,4 @@
 captum
-torch
 transformers
 fastapi
 uvicorn

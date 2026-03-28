@@ -10,12 +10,19 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-test}
       TEXT_SERVICE_URL: http://text-service:8000/analyze
+      IMAGE_SERVICE_URL: http://image-service:8000/analyze
+      VIDEO_SERVICE_URL: http://video-service:8000/analyze
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_TTL: 300
       RATE_LIMIT_PER_MIN: 60
+      SIGHTENGINE_API_USER: ${SIGHTENGINE_API_USER}
+      SIGHTENGINE_API_KEY: ${SIGHTENGINE_API_KEY}
     depends_on:
       - text-service
+      - audio-service
+      - image-service
+      - video-service
       - redis
     networks:
       - appnet
@@ -30,6 +37,43 @@ services:
       - appnet
     environment:
       HF_TOKEN: ${HF_TOKEN}
+  
+  audio-service:
+    image: ghcr.io/phillredkin/bakalarka-xai-moderation/audio-service:${TAG:-latest}
+    build:
+      context: ../services/audio-service
+    ports:
+      - "8002:8000"
+    networks:
+      - appnet
+
+  image-service:
+    image: ghcr.io/phillredkin/bakalarka-xai-moderation/image-service:${TAG:-latest}
+    build:
+      context: ../services/image-service
+    ports:
+      - "8003:8000"
+    networks:
+      - appnet
+    environment:
+      OCR_SPACE_API_KEY: ${OCR_SPACE_API_KEY}
+
+  video-service:
+    build:
+      context: ../services/video-service
+    container_name: video-service
+    environment:
+      AUDIO_SERVICE_URL: http://audio-service:8000/transcribe
+      TEXT_SERVICE_URL: http://text-service:8000/analyze
+      SIGHTENGINE_API_USER: ${SIGHTENGINE_API_USER}
+      SIGHTENGINE_API_KEY: ${SIGHTENGINE_API_KEY}
+    volumes:
+      - video_tmp:/tmp/video_uploads
+    depends_on:
+      - audio-service
+      - text-service
+    networks:
+      - appnet
 
   redis:
     image: redis:7-alpine
@@ -41,3 +85,6 @@ services:
 networks:
   appnet:
     driver: bridge
+
+volumes:
+  video_tmp:

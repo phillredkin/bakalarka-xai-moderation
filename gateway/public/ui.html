@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>XAI Moderation</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="min-h-screen bg-zinc-100 text-zinc-900">
@@ -18,20 +19,28 @@
   </div>
 
   <div class="mb-8 flex gap-3">
-    <button class="rounded-full bg-zinc-900 text-white px-5 py-2 text-sm font-medium shadow">
+    <button id="tabText"
+      class="tab-btn rounded-full px-5 py-2 text-sm font-medium shadow">
       Text
     </button>
-    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+
+    <button id="tabImage"
+      class="tab-btn rounded-full px-5 py-2 text-sm font-medium shadow">
       Image
     </button>
-    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+
+    <button id="tabAudio"
+      class="tab-btn rounded-full px-5 py-2 text-sm font-medium shadow">
       Audio
     </button>
-    <button class="rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-600 shadow hover:bg-zinc-100">
+
+    <button id="tabVideo"
+      class="tab-btn rounded-full px-5 py-2 text-sm font-medium shadow">
       Video
     </button>
   </div>
 
+  <!-- TEXT SERIVE -->
   <section class="bg-white rounded-2xl shadow-lg p-6">
 
     <div class="flex items-center justify-between mb-4">
@@ -66,6 +75,201 @@
     </div>
 
   </section>
+
+
+  <!-- AUDIO SERVICE -->
+  <section id="audioSection" class="bg-white rounded-2xl shadow-lg p-6 mt-10 hidden">
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold">Audio analysis</h2>
+    </div>
+
+    <div id="audioDropArea"
+      class="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-xl p-10 bg-zinc-50 transition hover:bg-zinc-100 cursor-pointer">
+
+      <svg width="64px" height="64px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M13 14H8.81763C7.20089 14 5.83017 15.1888 5.60153 16.7893V16.7893C5.29858 18.9099 7.09499 20.7381 9.22059 20.4724L9.77821 20.4027C11.6188 20.1727 13 18.608 13 16.7531V7.38851C13 5.77017 13 4.961 13.474 4.4015C13.9479 3.84201 14.7461 3.70899 16.3424 3.44293L18.6991 3.05015C18.8349 3.02751 18.9028 3.01619 18.9395 3.05588C18.9761 3.09557 18.9594 3.16236 18.926 3.29593L18.0307 6.87721C18.0158 6.93689 18.0083 6.96672 17.9873 6.98673C17.9664 7.00673 17.9362 7.01276 17.8759 7.02482L13 8" stroke="#33363F" stroke-width="2"></path> </g></svg>
+
+      
+      <p class="mt-4 text-sm text-zinc-600">
+        Drag & Drop audio file here
+      </p>
+
+      <p class="text-xs text-zinc-400 mt-1">
+        MP3 or WAV
+      </p>
+
+      <input type="file" id="audioInput" accept="audio/*" hidden />
+    </div>
+
+    <div id="audioFileInfo" class="mt-6 hidden">
+      <div class="flex justify-between items-center bg-zinc-100 rounded-xl px-4 py-3 text-sm">
+        <span id="audioFileName"></span>
+        <button id="removeAudio"
+          class="text-red-600 hover:text-red-700 font-medium">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <button id="submitAudio"
+        class="rounded-xl bg-zinc-900 text-white px-6 py-2 text-sm font-medium hover:bg-zinc-800 disabled:opacity-50">
+        Analyze Audio
+      </button>
+    </div>
+
+    <div id="audioResultSection" class="mt-8 hidden">
+      <h3 class="text-sm font-semibold text-zinc-700 mb-2">Result</h3>
+
+      <div id="audioResultBox"
+        class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
+      </div>
+    </div>
+
+  </section>
+
+
+
+  <!-- IMAGE SERVICE -->
+  <section id="imageSection" class="bg-white rounded-2xl shadow-lg p-6 mt-10 hidden">
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold">Image analysis</h2>
+    </div>
+
+    <div class="flex gap-3 mb-6">
+      <button id="modeUpload"
+        class="image-mode-btn rounded-full px-4 py-1 text-sm bg-zinc-900 text-white">
+        Upload
+      </button>
+
+      <button id="modeUrl"
+        class="image-mode-btn rounded-full px-4 py-1 text-sm bg-zinc-100 text-zinc-600">
+        URL
+      </button>
+    </div>
+
+    <div id="imageUploadBlock">
+
+      <div id="imageDropArea"
+        class="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-xl p-10 bg-zinc-50 transition hover:bg-zinc-100 cursor-pointer">
+
+        <svg width="64px" height="64px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Stock_cut" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <desc></desc> <g> <rect fill="none" height="22" stroke="#33363F" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" width="30" x="1" y="5"></rect> <polygon fill="none" points="31,27 21,17 11,27 " stroke="#33363F" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></polygon> <polygon fill="none" points="18,20 9,11 1,19 1,27 11,27 " stroke="#33363F" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></polygon> <circle cx="19" cy="11" fill="none" r="2" stroke="#33363F" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></circle> </g> </g></svg>
+
+        <p class="text-sm text-zinc-600">
+          Drag & Drop image here
+        </p>
+
+        <p class="text-xs text-zinc-400 mt-1">
+          PDF, GIF, PNG, JPG, TIF, BMP
+        </p>
+
+        <input type="file" id="imageInput" accept="image/*" hidden />
+      </div>
+
+    </div>
+
+    <div id="imageUrlBlock" class="hidden">
+      <input type="text"
+        id="imageUrlInput"
+        placeholder="Paste image URL..."
+        class="w-full rounded-xl bg-zinc-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-300" />
+    </div>
+
+    <div id="imagePreviewSection" class="mt-6 hidden">
+      <h3 class="text-sm font-semibold text-zinc-700 mb-2">Preview</h3>
+
+      <div class="relative">
+        <img id="imagePreview"
+          class="rounded-xl shadow max-h-80 object-contain mx-auto" />
+        
+        <div id="imageError" class="hidden text-center text-red-600 text-sm mt-4">
+          Image not found :(
+        </div>  
+
+        <button id="removeImage"
+          class="absolute top-2 right-2 bg-white rounded-full px-3 py-1 text-xs shadow text-red-600 hover:bg-red-50">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <button id="submitImage"
+        class="rounded-xl bg-zinc-900 text-white px-6 py-2 text-sm font-medium hover:bg-zinc-800 disabled:opacity-50">
+        Analyze Image
+      </button>
+    </div>
+    
+
+    <div id="imageResultSection" class="mt-8 hidden">
+      <div id="ocrResult"></div>
+    </div>
+  </section>
+
+  <!-- VIDEO SERVICE -->
+  <section id="videoSection" class="bg-white rounded-2xl shadow-lg p-6 mt-10 hidden">
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold">Video analysis</h2>
+    </div>
+
+    <div id="videoDropArea"
+      class="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-xl p-10 bg-zinc-50 transition hover:bg-zinc-100 cursor-pointer">
+
+      <svg viewBox="0 0 24 24" width="64px" height="64px" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M16 10L18.5768 8.45392C19.3699 7.97803 19.7665 7.74009 20.0928 7.77051C20.3773 7.79703 20.6369 7.944 20.806 8.17433C21 8.43848 21 8.90095 21 9.8259V14.1741C21 15.099 21 15.5615 20.806 15.8257C20.6369 16.056 20.3773 16.203 20.0928 16.2295C19.7665 16.2599 19.3699 16.022 18.5768 15.5461L16 14M6.2 18H12.8C13.9201 18 14.4802 18 14.908 17.782C15.2843 17.5903 15.5903 17.2843 15.782 16.908C16 16.4802 16 15.9201 16 14.8V9.2C16 8.0799 16 7.51984 15.782 7.09202C15.5903 6.71569 15.2843 6.40973 14.908 6.21799C14.4802 6 13.9201 6 12.8 6H6.2C5.0799 6 4.51984 6 4.09202 6.21799C3.71569 6.40973 3.40973 6.71569 3.21799 7.09202C3 7.51984 3 8.07989 3 9.2V14.8C3 15.9201 3 16.4802 3.21799 16.908C3.40973 17.2843 3.71569 17.5903 4.09202 17.782C4.51984 18 5.07989 18 6.2 18Z" stroke="#33363F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+
+      <p class="mt-4 text-sm text-zinc-600">
+        Drag & Drop video file here
+      </p>
+
+      <p class="text-xs text-zinc-400 mt-1">
+        MP4, MOV, AVI, WEBM
+      </p>
+
+      <input type="file" id="videoInput" accept="video/*" hidden />
+    </div>
+
+    <div id="videoFileInfo" class="mt-6 hidden">
+      <div class="flex justify-between items-center bg-zinc-100 rounded-xl px-4 py-3 text-sm">
+        <span id="videoFileName"></span>
+        <button id="removeVideo"
+          class="text-red-600 hover:text-red-700 font-medium">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="videoPreviewSection" class="mt-6 hidden">
+      <h3 class="text-sm font-semibold text-zinc-700 mb-2">Preview</h3>
+
+      <div class="relative">
+        <video
+          id="videoPreview"
+          class="rounded-xl shadow max-h-96 w-full bg-black object-contain"
+          controls
+          preload="metadata"
+        ></video>
+
+        <div id="videoError" class="hidden text-center text-red-600 text-sm mt-4">
+          Video preview not available :(
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <button id="submitVideo"
+        class="rounded-xl bg-zinc-900 text-white px-6 py-2 text-sm font-medium hover:bg-zinc-800 disabled:opacity-50">
+        Analyze Video
+      </button>
+    </div>
+
+    <div id="videoResultSection" class="mt-8 hidden">
+      <div id="videoResultBox">
+    </div>
+
+  </section>
+
 </div>
 
 <script>
@@ -185,6 +389,1030 @@ function renderVisualResult(originalText, apiData) {
     <div class="text-sm leading-relaxed">${html}</div>
   `;
 }
+</script>
+
+
+<script>
+  const audioSection = document.getElementById("audioSection");
+  const audioDropArea = document.getElementById("audioDropArea");
+  const audioInput = document.getElementById("audioInput");
+  const audioFileInfo = document.getElementById("audioFileInfo");
+  const audioFileName = document.getElementById("audioFileName");
+  const removeAudio = document.getElementById("removeAudio");
+  const submitAudio = document.getElementById("submitAudio");
+  const audioResultSection = document.getElementById("audioResultSection");
+  const audioResultBox = document.getElementById("audioResultBox");
+
+  let selectedAudioFile = null;
+
+  document.querySelectorAll("button")[2].addEventListener("click", () => {
+    document.querySelector("section").classList.add("hidden");
+    audioSection.classList.remove("hidden");
+  });
+
+  audioDropArea.addEventListener("click", () => audioInput.click());
+
+  audioDropArea.addEventListener("dragover", e => {
+    e.preventDefault();
+    audioDropArea.classList.add("bg-zinc-200");
+  });
+
+  audioDropArea.addEventListener("dragleave", () => {
+    audioDropArea.classList.remove("bg-zinc-200");
+  });
+
+  audioDropArea.addEventListener("drop", e => {
+    e.preventDefault();
+    audioDropArea.classList.remove("bg-zinc-200");
+
+    const file = e.dataTransfer.files[0];
+    handleAudioFile(file);
+  });
+
+  audioInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    handleAudioFile(file);
+  });
+
+  function handleAudioFile(file) {
+    if (!file) return;
+
+    if (!file.type.startsWith("audio/")) {
+      alert("Only audio files allowed");
+      return;
+    }
+
+    selectedAudioFile = file;
+    audioFileName.textContent = file.name;
+    audioFileInfo.classList.remove("hidden");
+  }
+
+  removeAudio.onclick = () => {
+    selectedAudioFile = null;
+    audioFileInfo.classList.add("hidden");
+    audioInput.value = "";
+    audioResultSection.classList.add("hidden");
+  };
+
+	submitAudio.onclick = async () => {
+		if (!selectedAudioFile) {
+			return alert("Select audio first");
+		}
+
+		submitAudio.disabled = true;
+		audioResultSection.classList.remove("hidden");
+		audioResultBox.innerHTML = "Transcription + analysis...";
+
+		try {
+		const fd = new FormData();
+		fd.append("file", selectedAudioFile);
+
+		const res = await fetch("/api/v1/audio/analyze", {
+			method: "POST",
+			body: fd
+		});
+
+		const data = await res.json();
+
+		if (!data.audio || !data.moderation) {
+			throw new Error("Invalid response");
+		}
+
+		renderVisualResult(
+			data.audio.text,
+			data.moderation.data
+		);
+
+		audioResultBox.innerHTML = resultBox.innerHTML;
+
+		} catch (e) {
+		audioResultBox.innerHTML =
+			`<span class="text-red-600">Service error</span>`;
+		} finally {
+		submitAudio.disabled = false;
+		}
+	};
+
+
+</script>
+
+
+<script>
+const tabText = document.getElementById("tabText");
+const tabAudio = document.getElementById("tabAudio");
+const tabImage = document.getElementById("tabImage");
+const tabVideo = document.getElementById("tabVideo");
+
+const textSection = document.querySelector("section:not(#audioSection):not(#imageSection):not(#videoSection)");
+const audioSectionEl = document.getElementById("audioSection");
+const imageSectionEl = document.getElementById("imageSection");
+const videoSectionEl = document.getElementById("videoSection");
+
+function setActiveTab(activeTab) {
+  const tabs = document.querySelectorAll(".tab-btn");
+
+  tabs.forEach(tab => {
+    tab.classList.remove("bg-zinc-900", "text-white");
+    tab.classList.add("bg-white", "text-zinc-600", "hover:bg-zinc-100");
+  });
+
+  activeTab.classList.remove("bg-white", "text-zinc-600", "hover:bg-zinc-100");
+  activeTab.classList.add("bg-zinc-900", "text-white");
+}
+
+function showSection(sectionName) {
+  textSection.classList.add("hidden");
+  audioSectionEl.classList.add("hidden");
+  imageSectionEl.classList.add("hidden");
+  videoSectionEl.classList.add("hidden");
+
+  if (sectionName === "text") {
+    textSection.classList.remove("hidden");
+    setActiveTab(tabText);
+  }
+
+  if (sectionName === "audio") {
+    audioSectionEl.classList.remove("hidden");
+    setActiveTab(tabAudio);
+  }
+
+  if (sectionName === "image") {
+    imageSectionEl.classList.remove("hidden");
+    setActiveTab(tabImage);
+  }
+
+  if (sectionName === "video") {
+    videoSectionEl.classList.remove("hidden");
+    setActiveTab(tabVideo);
+  }
+}
+
+showSection("text");
+
+tabText.onclick = () => showSection("text");
+tabAudio.onclick = () => showSection("audio");
+tabImage.onclick = () => showSection("image");
+tabVideo.onclick = () => showSection("video");
+</script>
+
+
+
+<script>
+const modeUpload = document.getElementById("modeUpload");
+const modeUrl = document.getElementById("modeUrl");
+
+const imageUploadBlock = document.getElementById("imageUploadBlock");
+const imageUrlBlock = document.getElementById("imageUrlBlock");
+
+const imageDropArea = document.getElementById("imageDropArea");
+const imageInput = document.getElementById("imageInput");
+const imageUrlInput = document.getElementById("imageUrlInput");
+
+const imagePreviewSection = document.getElementById("imagePreviewSection");
+const imagePreview = document.getElementById("imagePreview");
+const removeImage = document.getElementById("removeImage");
+const submitImage = document.getElementById("submitImage");
+
+const imageError = document.getElementById('imageError');
+
+removeImage.classList.add("hidden");
+
+imagePreview.onerror = () => {
+  imagePreview.classList.add('hidden');
+  imageError.classList.remove('hidden');
+  removeImage.classList.add("hidden");
+};
+
+let selectedImageFile = null;
+let selectedImageUrl = null;
+
+
+function setImageMode(mode) {
+  document.querySelectorAll(".image-mode-btn").forEach(btn => {
+    btn.classList.remove("bg-zinc-900", "text-white");
+    btn.classList.add("bg-zinc-100", "text-zinc-600");
+  });
+
+  if (mode === "upload") {
+    modeUpload.classList.remove("bg-zinc-100", "text-zinc-600");
+    modeUpload.classList.add("bg-zinc-900", "text-white");
+
+    imageUploadBlock.classList.remove("hidden");
+    imageUrlBlock.classList.add("hidden");
+  }
+
+  if (mode === "url") {
+    modeUrl.classList.remove("bg-zinc-100", "text-zinc-600");
+    modeUrl.classList.add("bg-zinc-900", "text-white");
+
+    imageUploadBlock.classList.add("hidden");
+    imageUrlBlock.classList.remove("hidden");
+  }
+
+  clearImage();
+}
+
+modeUpload.onclick = () => setImageMode("upload");
+modeUrl.onclick = () => setImageMode("url");
+
+function showPreview(src) {
+  imageError.classList.add('hidden');
+  imagePreview.classList.remove('hidden');
+  removeImage.classList.add("hidden");
+  imagePreview.src = src;
+  imagePreviewSection.classList.remove("hidden");
+}
+
+imagePreview.onload = () => {
+  removeImage.classList.remove("hidden");
+};
+
+imagePreview.onerror = () => {
+  imagePreview.classList.add("hidden");
+  imageError.classList.remove("hidden");
+  removeImage.classList.add("hidden");
+};
+
+function clearImage() {
+  imageError.classList.add('hidden');
+  imagePreview.classList.remove('hidden');
+  selectedImageFile = null;
+  selectedImageUrl = null;
+  imagePreview.src = "";
+  imagePreviewSection.classList.add("hidden");
+  imageInput.value = "";
+  imageUrlInput.value = "";
+  imageResultSection.classList.add("hidden");
+  ocrBox.innerHTML = "";
+  removeImage.classList.add("hidden");
+}
+
+removeImage.onclick = clearImage;
+
+imageDropArea.addEventListener("click", () => imageInput.click());
+
+imageDropArea.addEventListener("dragover", e => {
+  e.preventDefault();
+  imageDropArea.classList.add("bg-zinc-200");
+});
+
+imageDropArea.addEventListener("dragleave", () => {
+  imageDropArea.classList.remove("bg-zinc-200");
+});
+
+imageDropArea.addEventListener("drop", e => {
+  e.preventDefault();
+  imageDropArea.classList.remove("bg-zinc-200");
+  const file = e.dataTransfer.files[0];
+  handleFile(file);
+});
+
+imageInput.addEventListener("change", e => {
+  handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Only image files allowed");
+    return;
+  }
+
+  selectedImageFile = file;
+  selectedImageUrl = null;
+
+  const reader = new FileReader();
+  reader.onload = e => showPreview(e.target.result);
+  reader.readAsDataURL(file);
+}
+
+imageUrlInput.addEventListener("input", () => {
+  const url = imageUrlInput.value.trim();
+
+  if (!url) {
+    clearImage();
+    return;
+  }
+
+  selectedImageUrl = url;
+  selectedImageFile = null;
+
+  showPreview(url);
+});
+
+const imageResultSection = document.getElementById("imageResultSection");
+const ocrBox = document.getElementById("ocrResult");
+
+submitImage.onclick = async () => {
+  if (!selectedImageFile && !selectedImageUrl) {
+    return alert("Upload image or enter URL");
+  }
+
+  submitImage.disabled = true;
+  imageResultSection.classList.add("hidden");
+  ocrBox.innerHTML = "";
+
+  try {
+    let res;
+
+    if (selectedImageFile) {
+      const fd = new FormData();
+      fd.append("file", selectedImageFile);
+      res = await fetch("/api/v1/image/analyze", { method: "POST", body: fd });
+    } else {
+      res = await fetch("/api/v1/image/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: selectedImageUrl })
+      });
+    }
+
+    const data = await res.json();
+    imageResultSection.classList.remove("hidden");
+
+    const RAW_OCR = (data?.ocr?.text ?? "").trim();
+
+    const NO_TEXT_MARKERS = [
+      "text was not found on this image",
+      "no text detected",
+      "no text found",
+      "text not found"
+    ];
+
+    const ocrText = RAW_OCR;
+    const ocrLower = ocrText.toLowerCase();
+
+    const hasRealText =
+      ocrText.length > 0 &&
+      !NO_TEXT_MARKERS.some(m => ocrLower.includes(m));
+
+    let moderationData = data?.moderation?.data ?? null;
+
+    if (!moderationData && hasRealText) {
+      try {
+        const textRes = await fetch("/api/v1/text/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: ocrText })
+        });
+        const textJson = await textRes.json();
+        moderationData = textJson?.data ?? null;
+      } catch (_) {}
+    }
+
+    let textModerationHtml = "";
+
+    if (!hasRealText) {
+      textModerationHtml = `<div class="text-sm text-zinc-500">No text detected</div>`;
+    } else if (moderationData) {
+      renderVisualResult(ocrText, moderationData);
+      textModerationHtml = resultBox.innerHTML;
+    } else {
+      textModerationHtml = `
+        <div class="text-sm text-zinc-500 mb-2">Text moderation unavailable</div>
+        <div class="text-sm leading-relaxed">${ocrText}</div>
+      `;
+    }
+
+    const THRESHOLD = 0.01;
+    const sight = data?.sightengine ?? null;
+    const findings = [];
+
+    const prettyLabel = (raw) =>
+      raw
+        .split(".")
+        .pop()
+        .replaceAll("_", " ")
+        .toLowerCase();
+
+    function probColorClass(pct) {
+      if (pct < 40) return "text-green-600";
+      if (pct < 70) return "text-orange-500";
+      return "text-red-600";
+    }
+
+    function walk(obj, path = "") {
+      if (!obj || typeof obj !== "object") return;
+
+      for (const key in obj) {
+        if (key === "request" || key === "status" || key === "media") continue;
+
+        const val = obj[key];
+        const nextPath = path ? `${path}.${key}` : key;
+
+        if (typeof val === "number") {
+          if (key !== "prob" && val > THRESHOLD && val <= 1) {
+            findings.push({
+              label: prettyLabel(nextPath),
+              prob: val
+            });
+          }
+          continue;
+        }
+
+        if (val && typeof val === "object") {
+          walk(val, nextPath);
+        }
+      }
+    }
+
+    if (sight) walk(sight);
+    findings.sort((a, b) => b.prob - a.prob);
+    
+    function labelByScore(score) {
+      if (score >= 70) return { label: "Toxic", color: "text-red-600" };
+      if (score >= 40) return { label: "Possibly toxic", color: "text-orange-500" };
+      return { label: "Not toxic", color: "text-green-600" };
+    }
+
+    let textScore = 0;
+    let textLabelRaw = null;
+
+    if (hasRealText && moderationData) {
+      const c = Number(moderationData.confidence ?? 0);
+      textScore = c <= 1 ? (c * 100) : c;
+      textLabelRaw = (moderationData.label ?? "").toLowerCase();
+    } else {
+      textScore = 0;
+      textLabelRaw = "none";
+    }
+
+    let visualScore = 0;
+    if (findings.length) {
+      visualScore = Math.max(...findings.map(f => Math.round(f.prob * 100)));
+    } else {
+      visualScore = 0;
+    }
+
+    const textEval = labelByScore(textScore);
+    const visualEval = labelByScore(visualScore);
+
+    let finalScore = Math.max(textScore, visualScore);
+    let finalEval = labelByScore(finalScore);
+
+    if (textScore >= 70 || visualScore >= 70) {
+      finalEval = { label: "Toxic", color: "text-red-600" };
+    } else if (textScore >= 40 || visualScore >= 40) {
+      finalEval = { label: "Possibly toxic", color: "text-orange-500" };
+    } else {
+      finalEval = { label: "Not toxic", color: "text-green-600" };
+    }
+
+
+    function joinReadable(arr) {
+      if (arr.length === 0) return "";
+      if (arr.length === 1) return arr[0];
+      if (arr.length === 2) return `${arr[0]} and ${arr[1]}`;
+      return arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1];
+    }
+
+    let contentModerationHtml = "";
+
+    if (!sight) {
+      contentModerationHtml = `<div class="text-sm text-zinc-500">No visual moderation result</div>`;
+    } else if (!findings.length) {
+      contentModerationHtml = `<div class="text-sm text-zinc-500">No notable visual signals detected</div>`;
+    } else {
+      const parts = findings.map(f => {
+        const pct = Math.round(f.prob * 100);
+        const color = probColorClass(pct);
+        return `<span class="${color} font-semibold">${pct}%</span> probability of <span class="font-medium">${f.label}</span>`;
+      });
+
+      contentModerationHtml = `
+        <div class="text-sm leading-relaxed">
+          The model indicates: ${joinReadable(parts)}.
+        </div>
+      `;
+    }
+    
+    const finalHtml = `
+      <div class="text-sm font-semibold text-zinc-700 mb-2">
+          Final result
+      </div>
+      <div class="rounded-xl bg-zinc-50 p-5 shadow-inner">
+        <div class="text-3xl font-semibold ${finalEval.color}">
+          ${finalEval.label.toUpperCase()}
+        </div>
+      </div>
+    `;
+
+    ocrBox.innerHTML = `
+      <div class="space-y-6">
+        <div>
+          <div class="text-sm font-semibold text-zinc-700 mb-2">
+            Text moderation in image
+          </div>
+          <div class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
+            ${textModerationHtml}
+          </div>
+        </div>
+        
+        <hr class="border-zinc-200">
+
+        <div>
+          <div class="text-sm font-semibold text-zinc-700 mb-2">
+            Visual content moderation
+          </div>
+          <div class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
+            ${contentModerationHtml}
+          </div>
+        </div>
+        
+        <hr class="border-zinc-200">
+
+        ${finalHtml}
+      </div>
+    `;
+  } catch (e) {
+    alert("Service error");
+  } finally {
+    submitImage.disabled = false;
+  }
+};
+</script>
+
+
+<script>
+const videoSection = document.getElementById("videoSection");
+const videoDropArea = document.getElementById("videoDropArea");
+const videoInput = document.getElementById("videoInput");
+const videoFileInfo = document.getElementById("videoFileInfo");
+const videoFileName = document.getElementById("videoFileName");
+const removeVideo = document.getElementById("removeVideo");
+const submitVideo = document.getElementById("submitVideo");
+const videoResultSection = document.getElementById("videoResultSection");
+const videoResultBox = document.getElementById("videoResultBox");
+
+const videoPreviewSection = document.getElementById("videoPreviewSection");
+const videoPreview = document.getElementById("videoPreview");
+const videoError = document.getElementById("videoError");
+
+let selectedVideoFile = null;
+let selectedVideoObjectUrl = null;
+
+const VIDEO_ALLOWED_PATHS = [
+  "offensive.prob",
+  "offensive.nazi",
+  "offensive.supremacist",
+  "offensive.terrorist",
+  "offensive.middle_finger",
+  "violence.prob",
+  "violence.classes.physical_violence",
+  "violence.classes.firearm_threat",
+  "weapon.firearm_action.aiming_threat",
+  "weapon.firearm_action.aiming_camera",
+];
+
+const VIDEO_LABELS = {
+  "offensive.prob": "offensive content",
+  "offensive.nazi": "nazi symbolism",
+  "offensive.supremacist": "supremacist symbolism",
+  "offensive.terrorist": "terrorist symbolism",
+  "offensive.middle_finger": "middle finger",
+  "violence.prob": "violence",
+  "violence.classes.physical_violence": "physical violence",
+  "violence.classes.firearm_threat": "firearm threat",
+  "weapon.firearm_action.aiming_threat": "aiming threat",
+  "weapon.firearm_action.aiming_camera": "aiming at camera",
+};
+
+videoDropArea.addEventListener("click", () => videoInput.click());
+
+videoDropArea.addEventListener("dragover", e => {
+  e.preventDefault();
+  videoDropArea.classList.add("bg-zinc-200");
+});
+
+videoDropArea.addEventListener("dragleave", () => {
+  videoDropArea.classList.remove("bg-zinc-200");
+});
+
+videoDropArea.addEventListener("drop", e => {
+  e.preventDefault();
+  videoDropArea.classList.remove("bg-zinc-200");
+
+  const file = e.dataTransfer.files[0];
+  handleVideoFile(file);
+});
+
+videoInput.addEventListener("change", e => {
+  const file = e.target.files[0];
+  handleVideoFile(file);
+});
+
+function showVideoPreview(file) {
+  if (selectedVideoObjectUrl) {
+    URL.revokeObjectURL(selectedVideoObjectUrl);
+    selectedVideoObjectUrl = null;
+  }
+
+  videoError.classList.add("hidden");
+  videoPreview.classList.remove("hidden");
+
+  selectedVideoObjectUrl = URL.createObjectURL(file);
+  videoPreview.src = selectedVideoObjectUrl;
+  videoPreviewSection.classList.remove("hidden");
+}
+
+videoPreview.onerror = () => {
+  videoPreview.classList.add("hidden");
+  videoError.classList.remove("hidden");
+};
+
+function handleVideoFile(file) {
+  if (!file) return;
+
+  if (!file.type.startsWith("video/")) {
+    alert("Only video files allowed");
+    return;
+  }
+
+  selectedVideoFile = file;
+  videoFileName.textContent = file.name;
+  videoFileInfo.classList.remove("hidden");
+  videoResultSection.classList.add("hidden");
+
+  showVideoPreview(file);
+}
+
+removeVideo.onclick = () => {
+  selectedVideoFile = null;
+  videoInput.value = "";
+  videoFileInfo.classList.add("hidden");
+  videoResultSection.classList.add("hidden");
+  videoResultBox.innerHTML = "";
+
+  videoPreview.pause();
+  videoPreview.removeAttribute("src");
+  videoPreview.load();
+  videoPreviewSection.classList.add("hidden");
+  videoError.classList.add("hidden");
+  videoPreview.classList.remove("hidden");
+
+  if (selectedVideoObjectUrl) {
+    URL.revokeObjectURL(selectedVideoObjectUrl);
+    selectedVideoObjectUrl = null;
+  }
+};
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function getValueByPath(obj, path) {
+  return path.split(".").reduce((acc, key) => {
+    if (acc && typeof acc === "object" && key in acc) {
+      return acc[key];
+    }
+    return undefined;
+  }, obj);
+}
+
+function labelByScore(score) {
+  if (score >= 70) return { label: "Toxic", color: "text-red-600" };
+  if (score >= 40) return { label: "Possibly toxic", color: "text-orange-500" };
+  return { label: "Not toxic", color: "text-green-600" };
+}
+
+function probColorClass(pct) {
+  if (pct < 40) return "text-green-600";
+  if (pct < 70) return "text-orange-500";
+  return "text-red-600";
+}
+
+function joinReadable(arr) {
+  if (arr.length === 0) return "";
+  if (arr.length === 1) return arr[0];
+  if (arr.length === 2) return `${arr[0]} and ${arr[1]}`;
+  return arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1];
+}
+
+function extractModerationScore(moderationObj) {
+  if (!moderationObj) return 0;
+
+  const data = moderationObj?.data ?? moderationObj;
+  const confidence = Number(data?.confidence ?? 0);
+
+  return confidence <= 1 ? Math.round(confidence * 100) : Math.round(confidence);
+}
+
+function renderModeratedTextHtml(text, moderationObj) {
+  if (!text || !moderationObj?.data || typeof renderVisualResult !== "function") {
+    return `<div class="text-sm text-zinc-500">No text available</div>`;
+  }
+
+  const prevHtml = resultBox.innerHTML;
+
+  try {
+    renderVisualResult(text, moderationObj.data);
+    return resultBox.innerHTML;
+  } finally {
+    resultBox.innerHTML = prevHtml;
+  }
+}
+
+function collectVideoFindings(statusData) {
+  const frames = statusData?.output?.data?.frames ?? [];
+  const findingsMap = new Map();
+
+  for (const frame of frames) {
+    for (const path of VIDEO_ALLOWED_PATHS) {
+      const rawVal = getValueByPath(frame, path);
+
+      if (typeof rawVal !== "number") continue;
+      if (rawVal < 0 || rawVal > 1) continue;
+
+      const current = findingsMap.get(path) ?? 0;
+      if (rawVal > current) {
+        findingsMap.set(path, rawVal);
+      }
+    }
+  }
+
+  return Array.from(findingsMap.entries())
+    .map(([path, prob]) => ({
+      path,
+      label: VIDEO_LABELS[path] || path,
+      prob
+    }))
+    .sort((a, b) => b.prob - a.prob);
+}
+
+function buildVideoVisualModerationHtml(findings, threshold = 0) {
+  const filtered = findings.filter(f => Math.round(f.prob * 100) >= threshold);
+
+  if (!filtered.length) {
+    return `<div class="text-sm text-zinc-500">No notable visual signals detected</div>`;
+  }
+
+  const parts = filtered.map(f => {
+    const pct = Math.round(f.prob * 100);
+    const color = probColorClass(pct);
+    return `<span class="${color} font-semibold">${pct}%</span> probability of <span class="font-medium">${f.label}</span>`;
+  });
+
+  return `
+    <div class="text-sm leading-relaxed">
+      The model indicates: ${joinReadable(parts)}.
+    </div>
+  `;
+}
+
+function buildFinalHtml(finalEval) {
+  return `
+    <div>
+      <div class="text-sm font-semibold text-zinc-700 mb-2">
+        Final result
+      </div>
+      <div class="rounded-xl bg-zinc-50 p-5 shadow-inner">
+        <div class="text-3xl font-semibold ${finalEval.color}">
+          ${finalEval.label.toUpperCase()}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildAudioHtml(audioText, moderationData) {
+  if (!audioText) {
+    return `<div class="text-sm text-zinc-500">No speech detected in video</div>`;
+  }
+
+  if (moderationData?.data) {
+    return renderModeratedTextHtml(audioText, moderationData);
+  }
+
+  const score = extractModerationScore(moderationData);
+  const evalObj = labelByScore(score);
+
+  return `
+    <div class="space-y-3">
+      <div>
+        <div class="text-sm font-medium text-zinc-700 mb-2">Transcribed audio text</div>
+        <div class="rounded-xl border border-zinc-200 bg-white p-3 text-sm whitespace-pre-wrap">${escapeHtml(audioText)}</div>
+      </div>
+
+      <div class="text-sm">
+        <span class="font-semibold text-zinc-700">Moderation:</span>
+        <span class="${evalObj.color} font-semibold ml-1">${evalObj.label}</span>
+        <span class="text-zinc-500 ml-2">(${score}%)</span>
+      </div>
+    </div>
+  `;
+}
+
+function buildVideoTextHtml(videoTextAnalysis) {
+  if (!videoTextAnalysis) {
+    return `
+      <div class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-500">
+        No text found inside video frames
+      </div>
+    `;
+  }
+
+  if (videoTextAnalysis.status !== "ok") {
+    return `
+      <div class="rounded-xl bg-zinc-50 p-5 shadow-inner text-red-600">
+        Video OCR analysis failed
+      </div>
+    `;
+  }
+
+  const items = videoTextAnalysis.items || [];
+
+  if (!items.length) {
+    return `
+      <div class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-500">
+        No text found inside video frames
+      </div>
+    `;
+  }
+
+  let html = `
+    <div class="space-y-4">
+      <div class="text-sm text-zinc-500">
+        Frames checked: <span class="font-semibold">${videoTextAnalysis.frames_checked ?? 0}</span>,
+        unique texts: <span class="font-semibold">${videoTextAnalysis.unique_texts_count ?? 0}</span>
+      </div>
+  `;
+
+  items.forEach((item, index) => {
+    const visibleText = item.text || "";
+
+    html += `
+      <div class="rounded-xl bg-zinc-50 p-5 shadow-inner">
+        <div class="text-xs text-zinc-500 mb-3">Text #${index + 1} · ${item.time ?? 0}s</div>
+        ${renderModeratedTextHtml(visibleText, item.moderation)}
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+function getMaxOcrScore(videoTextAnalysis) {
+  if (!videoTextAnalysis || !Array.isArray(videoTextAnalysis.items)) {
+    return 0;
+  }
+
+  let maxScore = 0;
+
+  for (const item of videoTextAnalysis.items) {
+    const score = extractModerationScore(item.moderation);
+    if (score > maxScore) {
+      maxScore = score;
+    }
+  }
+
+  return maxScore;
+}
+
+function renderVideoResult(audioHtml, videoTextHtml, visualHtml, finalEval) {
+  videoResultBox.innerHTML = `
+    <div class="space-y-6">
+      <div>
+        <div class="text-sm font-semibold text-zinc-700 mb-3">
+          Audio analysis in video
+        </div>
+        <div class="rounded-xl bg-zinc-50 p-5 shadow-inner">
+          ${audioHtml}
+        </div>
+      </div>
+
+      <hr class="border-zinc-200">
+
+      <div>
+        <div class="text-sm font-semibold text-zinc-700 mb-3">
+          Text found in video
+        </div>
+        ${videoTextHtml}
+      </div>
+
+      <hr class="border-zinc-200">
+
+      <div>
+        <div class="text-sm font-semibold text-zinc-700 mb-3">
+          Visual content moderation
+        </div>
+        <div class="rounded-xl bg-zinc-50 p-5 shadow-inner text-zinc-800">
+          ${visualHtml}
+        </div>
+      </div>
+
+      <hr class="border-zinc-200">
+
+      ${buildFinalHtml(finalEval)}
+    </div>
+  `;
+}
+
+submitVideo.onclick = async () => {
+  if (!selectedVideoFile) {
+    return alert("Select video first");
+  }
+
+  submitVideo.disabled = true;
+  videoResultSection.classList.remove("hidden");
+  videoResultBox.innerHTML = "Extracting audio, OCR text and analyzing video...";
+
+  try {
+    const fd = new FormData();
+    fd.append("file", selectedVideoFile);
+
+    const res = await fetch("/api/v1/video/analyze", {
+      method: "POST",
+      body: fd
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data?.error) {
+      throw new Error(data?.details || data?.error || "Service error");
+    }
+
+    const audioText = data?.audio_analysis?.audio?.text ?? "";
+    const audioModeration = data?.audio_analysis?.moderation ?? null;
+    const videoTextAnalysis = data?.video_text_analysis ?? null;
+    const mediaId = data?.video_moderation_async?.media?.id ?? "";
+
+    const audioHtml = buildAudioHtml(audioText, audioModeration);
+    const videoTextHtml = buildVideoTextHtml(videoTextAnalysis);
+
+    const textScore = extractModerationScore(audioModeration);
+    const ocrScore = getMaxOcrScore(videoTextAnalysis);
+
+    const initialVisualHtml = `<div class="text-sm text-zinc-500">Video moderation is still processing...</div>`;
+    const initialScore = Math.max(textScore, ocrScore);
+    const initialFinalEval = labelByScore(initialScore);
+
+    renderVideoResult(audioHtml, videoTextHtml, initialVisualHtml, initialFinalEval);
+
+    if (!mediaId) {
+      submitVideo.disabled = false;
+      return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 40;
+
+    const poll = async () => {
+      attempts++;
+
+      try {
+        const statusRes = await fetch(`/api/v1/video/status?id=${encodeURIComponent(mediaId)}`);
+        const statusData = await statusRes.json();
+
+        const jobStatus = statusData?.output?.data?.status ?? "";
+        const findings = collectVideoFindings(statusData);
+
+        let visualScore = 0;
+        if (findings.length) {
+          visualScore = Math.max(...findings.map(f => Math.round(f.prob * 100)));
+        }
+
+        const finalScore = Math.max(textScore, ocrScore, visualScore);
+        const finalEval = labelByScore(finalScore);
+
+        let visualThreshold = 101;
+        if (finalScore >= 70) {
+          visualThreshold = 70;
+        } else if (finalScore >= 40) {
+          visualThreshold = 40;
+        }
+
+        const visualHtml = buildVideoVisualModerationHtml(findings, visualThreshold);
+
+        renderVideoResult(audioHtml, videoTextHtml, visualHtml, finalEval);
+
+        if (jobStatus === "finished" || jobStatus === "failure" || jobStatus === "stopped") {
+          submitVideo.disabled = false;
+          return;
+        }
+
+        if (attempts >= maxAttempts) {
+          submitVideo.disabled = false;
+          return;
+        }
+
+        setTimeout(poll, 3000);
+      } catch (e) {
+        videoResultBox.innerHTML = `<span class="text-red-600">Polling error</span>`;
+        submitVideo.disabled = false;
+      }
+    };
+
+    setTimeout(poll, 3000);
+  } catch (e) {
+    videoResultBox.innerHTML = `<span class="text-red-600">Service error</span>`;
+    submitVideo.disabled = false;
+  }
+};
 </script>
 
 </body>

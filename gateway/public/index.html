@@ -305,7 +305,7 @@ submitBtn.onclick = async () => {
   resultSection.classList.add("hidden");
 
   try {
-    const res = await fetch("https://clarimod-api.onrender.com/api/v1/text/analyze", {
+    const res = await fetch("/api/v1/text/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text })
@@ -467,7 +467,7 @@ function renderVisualResult(originalText, apiData) {
 		const fd = new FormData();
 		fd.append("file", selectedAudioFile);
 
-		const res = await fetch("https://clarimod-api.onrender.com/api/v1/audio/analyze", {
+		const res = await fetch("/api/v1/audio/analyze", {
 			method: "POST",
 			body: fd
 		});
@@ -719,9 +719,9 @@ submitImage.onclick = async () => {
     if (selectedImageFile) {
       const fd = new FormData();
       fd.append("file", selectedImageFile);
-      res = await fetch("https://clarimod-api.onrender.com/api/v1/image/analyze", { method: "POST", body: fd });
+      res = await fetch("/api/v1/image/analyze", { method: "POST", body: fd });
     } else {
-      res = await fetch("https://clarimod-api.onrender.com/api/v1/image/analyze", {
+      res = await fetch("/api/v1/image/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: selectedImageUrl })
@@ -751,7 +751,7 @@ submitImage.onclick = async () => {
 
     if (!moderationData && hasRealText) {
       try {
-        const textRes = await fetch("https://clarimod-api.onrender.com/api/v1/text/analyze", {
+        const textRes = await fetch("/api/v1/text/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: ocrText })
@@ -1325,7 +1325,7 @@ submitVideo.onclick = async () => {
     const fd = new FormData();
     fd.append("file", selectedVideoFile);
 
-    const res = await fetch("https://clarimod-api.onrender.com/api/v1/video/analyze", {
+    const res = await fetch("/api/v1/video/analyze", {
       method: "POST",
       body: fd
     });
@@ -1365,7 +1365,7 @@ submitVideo.onclick = async () => {
       attempts++;
 
       try {
-        const statusRes = await fetch(`https://clarimod-api.onrender.com/api/v1/video/status?id=${encodeURIComponent(mediaId)}`);
+        const statusRes = await fetch(`/api/v1/video/status?id=${encodeURIComponent(mediaId)}`);
         const statusData = await statusRes.json();
 
         const jobStatus = statusData?.output?.data?.status ?? "";

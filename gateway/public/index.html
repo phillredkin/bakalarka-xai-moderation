@@ -1340,6 +1340,7 @@ submitVideo.onclick = async () => {
     const audioModeration = data?.audio_analysis?.moderation ?? null;
     const videoTextAnalysis = data?.video_text_analysis ?? null;
     const mediaId = data?.video_moderation_async?.media?.id ?? "";
+    const videoModerationError = data?.video_moderation_error?.message ?? "";
 
     const audioHtml = buildAudioHtml(audioText, audioModeration);
     const videoTextHtml = buildVideoTextHtml(videoTextAnalysis);
@@ -1347,7 +1348,9 @@ submitVideo.onclick = async () => {
     const textScore = extractModerationScore(audioModeration);
     const ocrScore = getMaxOcrScore(videoTextAnalysis);
 
-    const initialVisualHtml = `<div class="text-sm text-zinc-500">Video moderation is still processing...</div>`;
+    const initialVisualHtml = videoModerationError
+      ? `<div class="text-sm text-orange-600">${escapeHtml(videoModerationError)}</div>`
+      : `<div class="text-sm text-zinc-500">Video moderation is still processing...</div>`;
     const initialScore = Math.max(textScore, ocrScore);
     const initialFinalEval = labelByScore(initialScore);
 

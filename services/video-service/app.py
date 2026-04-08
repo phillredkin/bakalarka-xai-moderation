@@ -365,17 +365,20 @@ def analyze():
             try:
                 sight_data = sight_future.result()
             except Exception as sight_err:
-                return jsonify({
-                    "error": "sightengine unavailable",
+                sight_data = None
+                sight_error = {
+                    "type": "video_moderation_unavailable",
+                    "message": "Sorry, we cannot check objects in this video right now. Please try again later.",
                     "details": str(sight_err)
-                }), 502
+                }
 
         return jsonify({
             "status": "ok",
             "service": "video-service",
             "audio_analysis": audio_analysis,
             "video_text_analysis": ocr_analysis,
-            "video_moderation_async": sight_data
+            "video_moderation_async": sight_data,
+            "video_moderation_error": sight_error
         })
 
     except Exception as e:

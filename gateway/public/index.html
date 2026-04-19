@@ -1348,9 +1348,7 @@ submitVideo.onclick = async () => {
     const textScore = extractModerationScore(audioModeration);
     const ocrScore = getMaxOcrScore(videoTextAnalysis);
 
-    const initialVisualHtml = !mediaId
-      ? `<div class="text-sm text-orange-600">Unfortunately, we cannot analyze content in the video right now.</div>`
-      : `<div class="text-sm text-zinc-500">Video moderation is still processing...</div>`;
+    const initialVisualHtml = `<div class="text-sm text-orange-600">Unfortunately, we cannot analyze content in the video right now.</div>`;
     const initialScore = Math.max(textScore, ocrScore);
     const initialFinalEval = labelByScore(initialScore);
 

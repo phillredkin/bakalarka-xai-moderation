@@ -320,10 +320,17 @@ def start_sightengine_video_check(video_path):
             timeout=120
         )
 
-    if sight_response.status_code != 200:
-        raise Exception(sight_response.text)
+    sight_json = sight_response.json()
 
-    return sight_response.json()
+    if sight_response.status_code != 200 or sight_json.get("status") == "failure":
+        raise Exception(
+            sight_json.get("error", {}).get(
+                "message",
+                "Sightengine video moderation failed"
+            )
+        )
+
+    return sight_json
 
 
 @app.route("/health", methods=["GET"])

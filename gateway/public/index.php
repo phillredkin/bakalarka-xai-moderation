@@ -458,7 +458,7 @@ if ($path === '/api/v1/video/status' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $sightSecret = getenv('SIGHTENGINE_API_KEY');
 
     if (!$sightUser || !$sightSecret) {
-        http_response_code(500);ё
+        http_response_code(500);
         echo json_encode(["error" => "Sightengine credentials are missing"]);
         exit;
     }

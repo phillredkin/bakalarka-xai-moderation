@@ -15,7 +15,7 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 if ($path === '/' || $path === '') {
     header('Content-Type: text/html; charset=utf-8');
-    readfile(__DIR__ . '/ui.html');
+    readfile(__DIR__ . '/index.html');
     exit;
 }
 
@@ -458,7 +458,7 @@ if ($path === '/api/v1/video/status' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $sightSecret = getenv('SIGHTENGINE_API_KEY');
 
     if (!$sightUser || !$sightSecret) {
-        http_response_code(500);
+        http_response_code(500);ё
         echo json_encode(["error" => "Sightengine credentials are missing"]);
         exit;
     }
